@@ -7,3 +7,4 @@
 `define DEFAULT_VALUE_WIDTH 8 
 
 `define INFINITY ((2**VALUE_WIDTH)-1)
+`define UNVISITED ((2**INDEX_WIDTH)-1)
