@@ -5,6 +5,8 @@ language: verilog
 os:
   - linux
 
+dist: bionic
+
 # Compiler selection
 compiler:
   - clang++
