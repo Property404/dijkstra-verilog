@@ -2,3 +2,4 @@
 !*.v
 !*.sv
 !.gitignore
+!.travis.yml
