@@ -18,17 +18,18 @@ module Testbench
 	wire[INDEX_WIDTH-1:0] min_index;
 	wire[VALUE_WIDTH-1:0] min_value;
 
-	PriorityQueue dist_store(reset, clock, set_en, index, value, min_index, min_value);
+	PriorityQueue priority_queue(reset, clock, set_en, index, value, min_index, min_value);
 
 	// Setup clock to automatically strobe with a period of 20.
 	always #10000 clock = ~clock;
-	integer i;
 
+	// Allow us to write iff set_en is set
 	assign value = set_en?write_to_value:{VALUE_WIDTH{1'bz}};
 
+	integer i;
+	integer min = `INFINITY;
 	initial
 		begin
-		$timeformat(-12 ,0," ps",12);
 		// First setup up to monitor all inputs and outputs
 		//$monitor ("reset=%b,  set_en=%h, index=%d, value=%d, write_to_value=%d, mindex=%d, min_value=%d", reset,  set_en, index, value, write_to_value, min_index, min_value);
 
@@ -52,31 +53,54 @@ module Testbench
 		if(value != 0)
 		begin
 			$display("Source should be 0");
-			$finish();
+			$fatal(1);
 		end
-		for(index=1;index<MAX_NODES;index++)
+		for(index=1;index<MAX_NODES;index=index+1)
 		begin
 			@(posedge clock);
 			@(posedge clock);
 			if(value != `INFINITY)
 			begin
 				$display("dist[%d] = %d but should be infinity", index, value);
-				$finish();
+				$fatal(1);
 			end
 		end
+
+		if(min_value != 0)
+		begin
+			$display("Min value should initially be 0");
+			$fatal(1);
+		end
+
+		if(min_index != 0)
+		begin
+			$display("Min index should initially be 0");
+			$fatal(1);
+		end
+
 		$display("Initial values are correct");
-			@(posedge clock);#1;
-			@(posedge clock);#1;
-			set_en=1;
-			write_to_value = 200;
-			index = 0;
 
 
-			@(posedge clock);#1;
-			@(posedge clock);#1;
-			set_en = 0;
-		
-		for(i=0;i<10;i++)
+		// Set source-to-source distance to infinity
+		// So we can find the minimum value later
+		// (because otherwise source will always be the minimum value, being
+		// zero)
+		@(posedge clock);#1;
+		@(posedge clock);#1;
+		set_en=1;
+		write_to_value = `INFINITY;
+		index = 0;
+		@(posedge clock);#1;
+		@(posedge clock);#1;
+		set_en = 0;
+		if(min_value != `INFINITY)
+		begin
+			$display("Min value should initially be infinity");
+			$fatal(1);
+		end
+
+		// Make sure we can read and write
+		for(i=0;i<10;i=i+1)
 		begin
 			@(posedge clock);#1;
 			@(posedge clock);#1;
@@ -84,6 +108,8 @@ module Testbench
 			set_en = 1;
 			index = $urandom % 50;
 			write_to_value = $urandom % 50;
+			if (min<write_to_value)
+				min=write_to_value;
 
 			@(posedge clock);#1;
 			@(posedge clock);#1;
@@ -95,9 +121,14 @@ module Testbench
 			if(value != write_to_value)
 			begin
 				$display("FUCK");
-				$finish();
+				$fatal(1);
 			end
 
+			if(min != min_value)
+			begin
+				$display("Minimum value is incorrect. Is %d, but should be %d", min_value, min);
+				$fatal(1);
+			end
 		end
 
 		$display("Test completed successfully");
