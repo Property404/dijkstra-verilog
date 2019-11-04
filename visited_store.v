@@ -22,10 +22,19 @@ module VisitedStore
 	// return 1 if all nodes have been visited
 	output reg [INDEX_WIDTH-1:0] unvisited_nodes,
 
-	//output wire [INDEX_WIDTH*MAX_NODES-1:0] prev_vector
-	output reg [INDEX_WIDTH-1:0] prev_vector_reg[MAX_NODES-1:0]
-
+	output wire [INDEX_WIDTH*MAX_NODES-1:0] prev_vector_flattened
 );
+
+reg [INDEX_WIDTH-1:0] prev_vector[MAX_NODES-1:0];
+
+// Output a flattened version of prev_vector
+generate
+	genvar j;
+	for(j=0;j<MAX_NODES;j=j+1)
+		assign prev_vector_flattened[INDEX_WIDTH-1+INDEX_WIDTH*j:INDEX_WIDTH*j]
+			= prev_vector[j];
+endgenerate
+
 
 integer i;
 always @ (posedge clock) begin
@@ -33,17 +42,17 @@ always @ (posedge clock) begin
 	if(reset)
 	begin
 		for(i=0;i<MAX_NODES;i=i+1)
-			prev_vector_reg[i] = `UNVISITED;
+			prev_vector[i] = `UNVISITED;
 		unvisited_nodes = number_of_nodes;
 	end
 
 	// Set value
 	if(set_en)
 	begin
-		if (prev_vector_reg[index] == `UNVISITED)
+		if (prev_vector[index] == `UNVISITED)
 		begin
 			unvisited_nodes = unvisited_nodes - 1;
-			prev_vector_reg[index] = prev_node;
+			prev_vector[index] = prev_node;
 		end
 	end
 end
