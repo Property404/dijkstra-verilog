@@ -14,21 +14,23 @@ module Testbench
 	reg set_en=0;
 	reg [INDEX_WIDTH-1:0] index;
 	wire [VALUE_WIDTH-1:0] value;
-	reg [VALUE_WIDTH-1:0] rvalue;
+	reg [VALUE_WIDTH-1:0] write_to_value;
+	wire[INDEX_WIDTH-1:0] min_index;
+	wire[VALUE_WIDTH-1:0] min_value;
 
-	DistanceStore dist_store(reset, clock, set_en, index, value);
+	PriorityQueue dist_store(reset, clock, set_en, index, value, min_index, min_value);
 
 	// Setup clock to automatically strobe with a period of 20.
 	always #10000 clock = ~clock;
 	integer i;
 
-	assign value = set_en?rvalue:{VALUE_WIDTH{1'bz}};
+	assign value = set_en?write_to_value:{VALUE_WIDTH{1'bz}};
 
 	initial
 		begin
 		$timeformat(-12 ,0," ps",12);
 		// First setup up to monitor all inputs and outputs
-		//$monitor ("reset=%b,  set_en=%h, index=%h, value=%h, rvalue=%h", reset,  set_en, index, value, rvalue);
+		//$monitor ("reset=%b,  set_en=%h, index=%d, value=%d, write_to_value=%d, mindex=%d, min_value=%d", reset,  set_en, index, value, write_to_value, min_index, min_value);
 
 		// Reset 
 		reset = 0;
@@ -63,6 +65,16 @@ module Testbench
 			end
 		end
 		$display("Initial values are correct");
+			@(posedge clock);#1;
+			@(posedge clock);#1;
+			set_en=1;
+			write_to_value = 200;
+			index = 0;
+
+
+			@(posedge clock);#1;
+			@(posedge clock);#1;
+			set_en = 0;
 		
 		for(i=0;i<10;i++)
 		begin
@@ -71,7 +83,7 @@ module Testbench
 
 			set_en = 1;
 			index = $urandom % 50;
-			rvalue = $urandom % 50;
+			write_to_value = $urandom % 50;
 
 			@(posedge clock);#1;
 			@(posedge clock);#1;
@@ -80,7 +92,7 @@ module Testbench
 			@(posedge clock);#1;
 			@(posedge clock);#1;
 
-			if(value != rvalue)
+			if(value != write_to_value)
 			begin
 				$display("FUCK");
 				$finish();
