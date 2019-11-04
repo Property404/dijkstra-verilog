@@ -21,5 +21,5 @@ install:
   
 # Build steps
 script:
-  - iverilog *.v
+  - iverilog -g 2012 *.v
   - ./a.out
