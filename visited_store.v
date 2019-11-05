@@ -1,4 +1,5 @@
 `include "constants.v"
+`timescale 1ps/1ps
 module VisitedStore
 #(
 	parameter MAX_NODES=`DEFAULT_MAX_NODES,

@@ -1,4 +1,5 @@
 `include "constants.v"
+`timescale 1ps/1ps
 module DistanceStore
 #(parameter MAX_NODES=`DEFAULT_MAX_NODES,
 parameter INDEX_WIDTH=`DEFAULT_INDEX_WIDTH,
