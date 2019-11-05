@@ -7,13 +7,10 @@ os:
 
 dist: bionic
 
-# Compiler selection
-compiler:
-  - clang++
-
 before_install:
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get update; fi
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get install iverilog; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get full-upgrade -y; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get install iverilog=10.1; fi
 
 install:
   - echo "nothing to install"
@@ -21,5 +18,5 @@ install:
   
 # Build steps
 script:
-  - iverilog -g 2012 *.v
+  - iverilog *.v
   - ./a.out
