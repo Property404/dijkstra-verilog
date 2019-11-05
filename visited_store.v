@@ -11,6 +11,8 @@ module VisitedStore
 	// Enable setting
 	input wire set_en,
 
+	// This should be set to the total number of nodes when reset is high. At
+	// all other times, this is ignored
 	input wire [INDEX_WIDTH-1:0] number_of_nodes,
 
 	// The node we are accessing
@@ -19,7 +21,7 @@ module VisitedStore
 	// Previous node in path
 	input wire [INDEX_WIDTH-1:0] prev_node,
 
-	// return 1 if all nodes have been visited
+	// Return number of nodes we have yet to visit
 	output reg [INDEX_WIDTH-1:0] unvisited_nodes,
 
 	output wire [INDEX_WIDTH*MAX_NODES-1:0] prev_vector_flattened

@@ -18,7 +18,28 @@ module Testbench
 	wire[INDEX_WIDTH-1:0] min_index;
 	wire[VALUE_WIDTH-1:0] min_value;
 
-	PriorityQueue priority_queue(reset, clock, set_en, index, value, min_index, min_value);
+	reg [INDEX_WIDTH-1:0] number_of_nodes=200;
+	wire [INDEX_WIDTH-1:0] unvisited_nodes;
+	wire [INDEX_WIDTH*MAX_NODES-1:0] prev_vector_flattened;
+
+	reg [INDEX_WIDTH-1:0] zzz = 16'bz;
+
+
+
+	/*
+	VisitedStore vs
+	(
+		reset,
+		clock,
+		1'b0,
+		number_of_nodes,
+		zzz,
+		zzz,
+		unvisited_nodes,
+		prev_vector_flattened
+	);
+	*/
+	PriorityQueue pq(reset, clock, set_en, index, prev_vector_flattened, value, min_index, min_value);
 
 	// Setup clock to automatically strobe with a period of 20.
 	always #10000 clock = ~clock;
