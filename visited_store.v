@@ -34,8 +34,10 @@ reg [INDEX_WIDTH-1:0] prev_vector[MAX_NODES-1:0];
 generate
 	genvar j;
 	for(j=0;j<MAX_NODES;j=j+1)
+	begin
 		assign prev_vector_flattened[INDEX_WIDTH-1+INDEX_WIDTH*j:INDEX_WIDTH*j]
 			= prev_vector[j];
+	end
 endgenerate
 
 

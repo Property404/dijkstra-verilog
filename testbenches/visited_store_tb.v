@@ -1,7 +1,7 @@
 `include "constants.v"
 `timescale 1ps/1ps
 
-module Testbench
+module VisitedStoreTestbench
 #(
 	parameter MAX_NODES=`DEFAULT_MAX_NODES,
 	parameter INDEX_WIDTH=`DEFAULT_INDEX_WIDTH,
@@ -12,7 +12,7 @@ module Testbench
 	reg reset=0;
 	reg clock=0;
 	reg set_en=0;
-	reg [INDEX_WIDTH-1:0] number_of_nodes=200;
+	reg [INDEX_WIDTH-1:0] number_of_nodes=10;
 	reg [INDEX_WIDTH-1:0] index;
 	reg [INDEX_WIDTH-1:0] prev_node;
 	wire [INDEX_WIDTH-1:0] unvisited_nodes;
@@ -22,7 +22,9 @@ module Testbench
 	generate
 		genvar j;
 		for(j=0;j<MAX_NODES;j=j+1)
+		begin
 			assign prev_vector[j] = prev_vector_flattened[INDEX_WIDTH-1+INDEX_WIDTH*j:INDEX_WIDTH*j];
+		end
 	endgenerate
 
 	VisitedStore vs
@@ -60,8 +62,32 @@ module Testbench
 		$display("Reset complete");
 
 		// Assert initial values are correct
-		//
+		for(i=0;i<number_of_nodes;i=i+1)
+		begin
+			if(prev_vector[i] != `UNVISITED)
+				$fatal("prev_vector[%d] is %d but should be UNVISITED", i, prev_vector[i]);
+		end
+		if(unvisited_nodes != number_of_nodes)
+			$fatal("Initial value of unvisited nodes is %d, but should be %d", unvisited_nodes, number_of_nodes);
 
+		// Visit nodes
+		for(i=0;i<number_of_nodes;i=i+1)
+		begin
+			@(posedge clock);
+			@(posedge clock);
+			set_en = 1;
+			index = i;
+			prev_node = $urandom%number_of_nodes;
+
+			@(posedge clock);
+			@(posedge clock);
+			if(prev_vector[index] != prev_node)$fatal("Prev vector did not update correctly");
+			if(unvisited_nodes != number_of_nodes-1-i)$fatal("Prev vector did not update correctly");
+		end
+		if(unvisited_nodes != 0)$fatal("Unvisited nodes did not reach zero");
+
+		
+		$display("VisitedStore testbench complete");
 		$finish();
 
 	end
