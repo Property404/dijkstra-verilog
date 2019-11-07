@@ -5,7 +5,9 @@ module EdgeCacheTestbench
 #(
 	parameter MAX_NODES=`DEFAULT_MAX_NODES,
 	parameter INDEX_WIDTH=`DEFAULT_INDEX_WIDTH,
-	parameter VALUE_WIDTH=`DEFAULT_VALUE_WIDTH
+	parameter VALUE_WIDTH=`DEFAULT_VALUE_WIDTH,
+	parameter MADDR_WIDTH=`DEFAULT_MADDR_WIDTH,
+	parameter MDATA_WIDTH=`DEFAULT_MDATA_WIDTH
 )
 (
 );
@@ -58,6 +60,7 @@ module EdgeCacheTestbench
 		reset = 0;
 		base_address = 0;
 		number_of_nodes = 10;
+		query_enable = 0;
 		@(posedge clock);
 		@(posedge clock);
 		clock = 1'b0;

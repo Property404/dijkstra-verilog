@@ -51,15 +51,15 @@ reg row_incomplete;
 integer column;
 integer row;
 
-// Address of the row we want to store in row_cache. Increments after last
-// item of cache has been read, which triggers the cache to be thrown out
-// and another row to be stored
+// Store initial values
 reg [MADDR_WIDTH-1:0] stored_base_address;
+reg [INDEX_WIDTH-1:0] stored_number_of_nodes;
 
 // Where the row is stored after we pull it from the graph
-reg [VALUE_WIDTH-1:0] row_cache[MAX_NODES];
+reg [VALUE_WIDTH-1:0] row_cache[MAX_NODES-1:0];
 
 reg waiting_for_memory;
+
 
 always @(posedge clock)
 begin
@@ -69,7 +69,7 @@ begin
 		row_incomplete = 1'b1;
 		column = base_address;
 		row = 0;
-		stored_based_address = base_address;
+		stored_base_address = base_address;
 		stored_number_of_nodes = number_of_nodes;
 		ready = 1'b0;
 		waiting_for_memory = 1'b0;
@@ -86,7 +86,7 @@ begin
 	begin
 		row_cache[column] = mem_data;
 		column = column + 1;
-		if(columns >= stored_number_of_nodes)
+		if(column >= stored_number_of_nodes)
 			row_incomplete = 1'b0;
 	end
 
