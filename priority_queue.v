@@ -1,6 +1,5 @@
 `include "constants.v"
 `timescale 1ps/1ps
-`define LEVELS log2(MAX_NODES)
 
 module PriorityQueue
 #(parameter MAX_NODES=`DEFAULT_MAX_NODES,
