@@ -80,7 +80,7 @@ module BlockRamTestbench
 				@(posedge clock);
 			end
 
-			if(mem_data != write_data)
+			if(mem_data !== write_data)
 			begin
 				$fatal(1, "memdata(%d)!=write_data(%d)", mem_data, write_data);
 			end
