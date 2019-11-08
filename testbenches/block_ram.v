@@ -17,37 +17,33 @@ module BlockRam
 	output reg mem_read_ready,
 
 	input wire [MADDR_WIDTH-1:0] mem_addr,
-	inout wire [MDATA_WIDTH-1:0] mem_data
+	output reg [MDATA_WIDTH-1:0] mem_read_data,
+	input wire [MDATA_WIDTH-1:0] mem_write_data
 );
-reg[MDATA_WIDTH-1:0] output_data;
-assign mem_data = mem_read_enable?output_data:'bz;
-
 reg[MDATA_WIDTH-1:0] words[`SIZE_IN_WORDS-1:0];
+
+// Pull down the enables if they're tristated
+assign (pull1, pull0) mem_read_enable = 1'b0;
+assign (pull1, pull0) mem_write_enable = 1'b0;
 
 
 always @(posedge clock)
 	begin
-		if(reset)
-		begin
-			mem_write_ready = 0;
-			mem_read_ready = 0;
-		end
-
 		// Reset ready signals
-		if(!mem_write_enable)
-			mem_write_ready = 1'b0;
-		if(!mem_read_enable)
-			mem_read_ready = 1'b0;
+		mem_write_ready = 1'b0;
+		mem_read_ready = 1'b0;
 
+		// Store data
 		if(mem_write_enable)
 		begin
-			words[8*mem_addr/MADDR_WIDTH] = mem_data;
+			words[8*mem_addr/MADDR_WIDTH] = mem_write_data;
 			mem_write_ready = 1'b1;
 		end
 
-		if(mem_read_enable)
+		// Send back data
+		else if(mem_read_enable)
 		begin
-			output_data = words[8*mem_addr/MADDR_WIDTH];
+			mem_read_data = words[8*mem_addr/MADDR_WIDTH];
 			mem_read_ready = 1'b1;
 		end
 	end

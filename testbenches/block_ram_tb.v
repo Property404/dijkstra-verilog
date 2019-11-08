@@ -11,17 +11,16 @@ module BlockRamTestbench
 	reg reset;
 	reg clock;
 
-	reg mem_read_enable = 0;
-	reg mem_write_enable = 0;
+	reg mem_read_enable;
+	reg mem_write_enable;
 
 	wire mem_write_ready;
 	wire mem_read_ready;
 
 	reg [MADDR_WIDTH-1:0] mem_addr;
-	wire [MDATA_WIDTH-1:0] mem_data;
 
-	reg[MDATA_WIDTH-1:0] write_data;
-	assign mem_data = mem_write_enable?write_data:'bz;
+	reg [MDATA_WIDTH-1:0] mem_write_data;
+	wire [MDATA_WIDTH-1:0] mem_read_data;
 
 	BlockRam br(
 		reset,
@@ -31,7 +30,8 @@ module BlockRamTestbench
 		mem_write_ready,
 		mem_read_ready,
 		mem_addr,
-		mem_data
+		mem_read_data,
+		mem_write_data
 	);
 
 	// Setup clock to automatically strobe with a period of 20.
@@ -58,9 +58,9 @@ module BlockRamTestbench
 		begin
 			// Write to address
 			@(posedge clock);
-			write_data = i*i + 5;
+			mem_write_data = i*i + 5;
 			mem_addr = i*MADDR_WIDTH/8;
-			mem_read_enable = 0;
+			mem_read_enable = 'bz;
 			mem_write_enable = 1;
 
 			// Wait until we wrote
@@ -69,7 +69,7 @@ module BlockRamTestbench
 				@(posedge clock);
 			end
 			@(posedge clock);
-			mem_write_enable = 0;
+			mem_write_enable = 'bz;
 
 			// Confirm that we wrote correctly
 			@(posedge clock);
@@ -80,9 +80,9 @@ module BlockRamTestbench
 				@(posedge clock);
 			end
 
-			if(mem_data !== write_data)
+			if(mem_read_data !== mem_write_data)
 			begin
-				$fatal(1, "memdata(%d)!=write_data(%d)", mem_data, write_data);
+				$fatal(1, "memdata(%d)!=write_data(%d)", mem_read_data, mem_write_data);
 			end
 
 
