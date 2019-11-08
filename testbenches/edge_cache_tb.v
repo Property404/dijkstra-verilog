@@ -99,7 +99,7 @@ module EdgeCacheTestbench
 				mem_write_enable = 1;
 
 				// Wait until we wrote
-				while(mem_write_ready == 0)
+				while(mem_write_ready === 0)
 				begin
 					@(posedge clock);
 				end
@@ -134,7 +134,7 @@ module EdgeCacheTestbench
 				begin
 					@(posedge clock);
 				end
-				if(edge_value != row*column)
+				if(edge_value !== row*column)
 					$fatal(1, "edge_value(%d) != %d", edge_value, row*column);
 				@(posedge clock);
 				@(posedge clock);
