@@ -1,7 +1,7 @@
 `include "constants.v"
 `timescale 1ps/1ps
-`define NUMBER_OF_NODES 8
-`define BASE_ADDRESS 0 
+`define NUMBER_OF_NODES 14
+`define BASE_ADDRESS 'h34
 
 module EdgeCacheTestbench
 #(
