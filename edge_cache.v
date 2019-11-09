@@ -58,6 +58,10 @@ reg waiting_for_memory;
 
 always @(posedge clock)
 begin
+	// Release memory lines so other components can access memory
+	mem_addr = 'bz;
+	mem_read_enable = 1'bz;
+
 	if(reset)
 	begin
 		row_incomplete = 1'b1;
@@ -67,8 +71,6 @@ begin
 		stored_number_of_nodes = number_of_nodes;
 		ready = 1'b0;
 		waiting_for_memory = 1'b0;
-		mem_addr = 'bz;
-		mem_read_enable = 1'bz;
 	end
 
 	// Fill row_cache
@@ -81,9 +83,8 @@ begin
 	end
 	if(waiting_for_memory && mem_read_ready)
 	begin
-		// Release memory lines so other components can access memory
-		mem_addr = 'bz;
-		mem_read_enable = 1'bz;
+
+		waiting_for_memory = 1'b0;
 
 		// Store cell in row cache
 		row_cache[column] = mem_data;
@@ -96,6 +97,7 @@ begin
 
 	// Respond to client's request for data
 	ready=0;
+	edge_value = 'bz;
 	if(query_enable && !row_incomplete)
 	begin
 		// TODO: dump when end is reached

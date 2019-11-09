@@ -1,7 +1,7 @@
 `include "constants.v"
 `timescale 1ps/1ps
-`define NUMBER_OF_NODES 4
-`define BASE_ADDRESS 64
+`define NUMBER_OF_NODES 8
+`define BASE_ADDRESS 0 
 
 module EdgeCacheTestbench
 #(
@@ -28,24 +28,27 @@ module EdgeCacheTestbench
 
 	// Memory interface
 	wire [MADDR_WIDTH-1:0] mem_addr;
-	wire [MDATA_WIDTH-1:0] mem_data;
+	wire [MDATA_WIDTH-1:0] mem_read_data;
+	reg [MDATA_WIDTH-1:0] mem_write_data;
 	wire mem_read_enable;
 	wire mem_read_ready;
-	reg mem_write_enable;
+	reg mem_write_enable = 1'bz;
 	wire mem_write_ready;
+
+	reg read_from_testbench = 1'b0;
+	assign mem_read_enable=read_from_testbench?1'b1:1'bz;
 
 	// When we have the requested edge value, set ready high and edge_value to
 	// the value from memory
 	wire ready;
 	wire [VALUE_WIDTH-1:0] edge_value;
 
-	reg [MDATA_WIDTH-1:0] write_data;
-	assign mem_data = mem_write_enable?write_data:'bz;
-
 	reg [MDATA_WIDTH-1:0] write_addr;
-	assign mem_addr= mem_write_enable?write_addr:'bz;
+	reg [MDATA_WIDTH-1:0] read_addr;
+	assign mem_addr= mem_write_enable?write_addr:
+		read_from_testbench?read_addr:'bz;
 
-	BlockRam br(
+	BlockRam bram(
 		mem_reset,
 		clock,
 		mem_read_enable,
@@ -53,10 +56,11 @@ module EdgeCacheTestbench
 		mem_write_ready,
 		mem_read_ready,
 		mem_addr,
-		mem_data
+		mem_read_data,
+		mem_write_data
 	);
 
-	EdgeCache ec(
+	EdgeCache edge_cache(
 		reset,
 		clock,
 		base_address,
@@ -65,12 +69,13 @@ module EdgeCacheTestbench
 		from_node,
 		to_node,
 		mem_addr,
-		mem_data, 
+		mem_read_data, 
 		mem_read_enable,
 		mem_read_ready,
 		ready,
 		edge_value
 	);
+
 	// Setup clock to automatically strobe with a period of 20.
 	always #10000 clock = ~clock;
 
@@ -94,7 +99,9 @@ module EdgeCacheTestbench
 			begin
 				// Write to address
 				@(posedge clock);
-				write_data = row*column;
+				mem_write_data = row*column;
+				if(mem_write_data !== row*column)
+					$fatal(1, "you done goofed");
 				write_addr = `BASE_ADDRESS+(row*`NUMBER_OF_NODES+column)*MADDR_WIDTH/8;
 				mem_write_enable = 1;
 
@@ -103,12 +110,34 @@ module EdgeCacheTestbench
 				begin
 					@(posedge clock);
 				end
+				if(mem_write_data !== row*column)
+                    $fatal(1, "you done goofed");
 				@(posedge clock);
-				mem_write_enable = 0;
+
+				mem_write_enable = 1'bz;
+
+				// Confirm we wrote correctly
+				read_from_testbench = 1'b1;
+				read_addr = write_addr;
+				while(mem_read_ready === 0)
+				begin
+					@(posedge clock);
+				end
+				if(mem_read_data !== mem_write_data)
+					$fatal(1, "Failed to write to Block Ram");
+				@(posedge clock);
+				read_from_testbench = 1'b0;
+
+		
 			end
 		end
 
+		@(posedge clock);
+		$display("EdgeCache test now begins");
+		@(posedge clock);
+
 		// Reset EdgeCache
+		mem_write_enable = 0;// Done writing
 		reset = 0;
 		query_enable = 0;
 		@(posedge clock);
@@ -117,10 +146,15 @@ module EdgeCacheTestbench
 		@(posedge clock);
 		@(posedge clock);
 		reset = 1'b0;
+
+		// We're done with resetting, so these shouldn't matter
 		base_address = 87; // bogus address
 		number_of_nodes = 105; //bogus number of nodes
 
-		$display("Reset complete");
+		$display("EdgeCache Reset complete");
+
+		for(row=0;row<8;row=row+1)
+			@(posedge clock);
 
 		// Confirm we can sequentially access data
 		for(row=0;row<`NUMBER_OF_NODES;row=row+1)
@@ -128,15 +162,19 @@ module EdgeCacheTestbench
 			from_node = row;
 			for(column=0;column<`NUMBER_OF_NODES;column=column+1)
 			begin
+				@(posedge clock);
 				to_node = column;
 				query_enable = 1;
+				$display("ROW, COLUMN=%d, %d", row, column);
 				while(ready == 0)
 				begin
 					@(posedge clock);
 				end
+				$display("EDGE=%d", edge_value);
 				if(edge_value !== row*column)
 					$fatal(1, "edge_value(%d) != %d", edge_value, row*column);
 				@(posedge clock);
+				query_enable = 0;
 				@(posedge clock);
 			end
 		end
