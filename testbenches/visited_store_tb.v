@@ -65,10 +65,10 @@ module VisitedStoreTestbench
 		for(i=0;i<number_of_nodes;i=i+1)
 		begin
 			if(prev_vector[i] != `UNVISITED)
-				$fatal("prev_vector[%d] is %d but should be UNVISITED", i, prev_vector[i]);
+				$fatal(1, "prev_vector[%d] is %d but should be UNVISITED", i, prev_vector[i]);
 		end
 		if(unvisited_nodes != number_of_nodes)
-			$fatal("Initial value of unvisited nodes is %d, but should be %d", unvisited_nodes, number_of_nodes);
+			$fatal(1, "Initial value of unvisited nodes is %d, but should be %d", unvisited_nodes, number_of_nodes);
 
 		// Visit nodes
 		for(i=0;i<number_of_nodes;i=i+1)
@@ -81,10 +81,10 @@ module VisitedStoreTestbench
 
 			@(posedge clock);
 			@(posedge clock);
-			if(prev_vector[index] != prev_node)$fatal("Prev vector did not update correctly");
-			if(unvisited_nodes != number_of_nodes-1-i)$fatal("Prev vector did not update correctly");
+			if(prev_vector[index] != prev_node)$fatal(1, "Prev vector did not update correctly");
+			if(unvisited_nodes != number_of_nodes-1-i)$fatal(1, "Prev vector did not update correctly");
 		end
-		if(unvisited_nodes != 0)$fatal("Unvisited nodes did not reach zero");
+		if(unvisited_nodes != 0)$fatal(1, "Unvisited nodes did not reach zero");
 
 		
 		$display("VisitedStore testbench complete");
