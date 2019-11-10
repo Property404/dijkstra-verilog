@@ -1,5 +1,5 @@
 // Number of nodes we're working with
-`define DEFAULT_MAX_NODES 1024
+`define DEFAULT_MAX_NODES 512
 `define DEFAULT_INDEX_WIDTH 16
 
 // Width of the edge value
