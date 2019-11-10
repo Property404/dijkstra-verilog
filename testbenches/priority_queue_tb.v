@@ -113,7 +113,7 @@ module PriorityQueueTestbench
 		end
 
 		// Make sure we can read and write
-		for(index=0;i<MAX_NODES;index=index+1)
+		for(index=0;index<MAX_NODES;index=index+1)
 		begin
 			@(posedge clock);#1;
 			@(posedge clock);#1;
