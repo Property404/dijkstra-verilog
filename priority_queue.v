@@ -22,9 +22,10 @@ parameter VALUE_WIDTH=`DEFAULT_VALUE_WIDTH)
 	input wire[INDEX_WIDTH*MAX_NODES-1:0] prev_vector_flattened,
 
 	// The value to be set (if set_en is high)
-	inout wire [VALUE_WIDTH-1:0] value,
+	input wire [VALUE_WIDTH-1:0] write_value,
 
 	//the value to be returned (if set_en is low)
+	output wire [VALUE_WIDTH-1:0] read_value,
 
 	// Return highest priority node/distance
 	output wire [INDEX_WIDTH-1:0] min_index,
@@ -33,12 +34,14 @@ parameter VALUE_WIDTH=`DEFAULT_VALUE_WIDTH)
 
 reg [VALUE_WIDTH-1:0] dist_vector[MAX_NODES-1:0];
 
+// Weakly pull down set_en
+assign (weak1,weak0) set_en = 1'b0;
 
 // Just a counting var for for-loops
 integer i;
 
 // Output value if get_en is set
-assign value = set_en ? {VALUE_WIDTH{1'bz}}: dist_vector[index];
+assign read_value = dist_vector[index];
 
 // Unflattened version of the aforementioned prev vector
 wire [INDEX_WIDTH-1:0] prev_vector[MAX_NODES-1:0];
@@ -95,7 +98,7 @@ always @ (posedge clock) begin
 
 	// Set value
 	if(set_en)
-		dist_vector[index] = value;
+		dist_vector[index] = write_value;
 end
 	
 endmodule

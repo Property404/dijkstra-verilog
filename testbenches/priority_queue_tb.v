@@ -13,10 +13,10 @@ module PriorityQueueTestbench
 	integer i;
 	reg reset=0;
 	reg clock=0;
-	reg set_en=0;
+	reg set_en=1'bz;
 	reg [INDEX_WIDTH-1:0] index;
-	wire [VALUE_WIDTH-1:0] value;
-	reg [VALUE_WIDTH-1:0] write_to_value;
+	reg [VALUE_WIDTH-1:0] write_value;
+	wire [VALUE_WIDTH-1:0] read_value;
 	wire[INDEX_WIDTH-1:0] min_index;
 	wire[VALUE_WIDTH-1:0] min_value;
 	wire [INDEX_WIDTH*MAX_NODES-1:0] prev_vector_flattened;
@@ -32,13 +32,10 @@ module PriorityQueueTestbench
 	endgenerate
 
 
-	PriorityQueue #(.MAX_NODES(MAX_NODES)) pq(reset, clock, set_en, index, prev_vector_flattened, value, min_index, min_value);
+	PriorityQueue #(.MAX_NODES(MAX_NODES)) pq(reset, clock, set_en, index, prev_vector_flattened, write_value, read_value, min_index, min_value);
 
 	// Setup clock to automatically strobe with a period of 20.
 	always #10000 clock = ~clock;
-
-	// Allow us to write iff set_en is set
-	assign value = set_en?write_to_value:{VALUE_WIDTH{1'bz}};
 
 	integer min = `INFINITY;
 	initial
@@ -48,12 +45,10 @@ module PriorityQueueTestbench
 		begin
 			prev_vector[i] = `UNVISITED;
 		end
-		// First setup up to monitor all inputs and outputs
-		//$monitor ("reset=%b,  set_en=%h, index=%d, value=%d, write_to_value=%d, mindex=%d, min_value=%d", reset,  set_en, index, value, write_to_value, min_index, min_value);
 
 		// Reset 
 		reset = 0;
-		set_en = 0;
+		set_en = 1'bz;
 		@(posedge clock);
 		@(posedge clock);
 		clock = 1'b0;
@@ -68,7 +63,7 @@ module PriorityQueueTestbench
 		// Confirm we reset correctly
 		@(posedge clock);
 		@(posedge clock);
-		if(value !== 0)
+		if(read_value !== 0)
 		begin
 			$fatal(1, "Source should be 0");
 		end
@@ -76,9 +71,9 @@ module PriorityQueueTestbench
 		begin
 			@(posedge clock);
 			@(posedge clock);
-			if(value !== `INFINITY)
+			if(read_value !== `INFINITY)
 			begin
-				$fatal(1, "dist[%d] = %d but should be infinity", index, value);
+				$fatal(1, "dist[%d] = %d but should be infinity", index, read_value);
 			end
 		end
 
@@ -102,11 +97,11 @@ module PriorityQueueTestbench
 		@(posedge clock);#1;
 		@(posedge clock);#1;
 		set_en=1;
-		write_to_value = `INFINITY;
+		write_value = `INFINITY;
 		index = 0;
 		@(posedge clock);#1;
 		@(posedge clock);#1;
-		set_en = 0;
+		set_en = 1'bz;
 		if(min_value !== `INFINITY)
 		begin
 			$fatal(1, "Min value should initially be infinity");
@@ -119,18 +114,18 @@ module PriorityQueueTestbench
 			@(posedge clock);#1;
 
 			set_en = 1;
-			write_to_value = $urandom % 50;
-			if (min>write_to_value)
-				min=write_to_value;
+			write_value = $urandom % 50;
+			if (min>write_value)
+				min=write_value;
 
 			@(posedge clock);#1;
 			@(posedge clock);#1;
-			set_en = 0;
+			set_en = 1'bz;
 
 			@(posedge clock);#1;
 			@(posedge clock);#1;
 
-			if(value !== write_to_value)
+			if(read_value !== write_value)
 			begin
 				$fatal(1, "FUCK");
 			end
