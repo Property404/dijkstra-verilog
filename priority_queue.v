@@ -22,8 +22,9 @@ parameter VALUE_WIDTH=`DEFAULT_VALUE_WIDTH)
 	input wire[INDEX_WIDTH*MAX_NODES-1:0] prev_vector_flattened,
 
 	// The value to be set (if set_en is high)
-	// or the value to be returned (if set_en is low)
 	inout wire [VALUE_WIDTH-1:0] value,
+
+	//the value to be returned (if set_en is low)
 
 	// Return highest priority node/distance
 	output wire [INDEX_WIDTH-1:0] min_index,
