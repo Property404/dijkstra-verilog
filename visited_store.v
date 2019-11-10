@@ -40,6 +40,8 @@ generate
 	end
 endgenerate
 
+// Weakly pull down set_en
+assign (weak1,weak0) set_en = 1'b0;
 
 integer i;
 always @ (posedge clock) begin

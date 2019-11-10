@@ -11,7 +11,7 @@ module VisitedStoreTestbench
 );
 	reg reset=0;
 	reg clock=0;
-	reg set_en=0;
+	reg set_en=1'bz;
 	reg [INDEX_WIDTH-1:0] number_of_nodes=10;
 	reg [INDEX_WIDTH-1:0] index;
 	reg [INDEX_WIDTH-1:0] prev_node;
@@ -50,7 +50,7 @@ module VisitedStoreTestbench
 
 		// Reset 
 		reset = 0;
-		set_en = 0;
+		set_en = 1'bz;
 		@(posedge clock);
 		@(posedge clock);
 		clock = 1'b0;
@@ -64,10 +64,10 @@ module VisitedStoreTestbench
 		// Assert initial values are correct
 		for(i=0;i<number_of_nodes;i=i+1)
 		begin
-			if(prev_vector[i] != `UNVISITED)
+			if(prev_vector[i] !== `UNVISITED)
 				$fatal(1, "prev_vector[%d] is %d but should be UNVISITED", i, prev_vector[i]);
 		end
-		if(unvisited_nodes != number_of_nodes)
+		if(unvisited_nodes !== number_of_nodes)
 			$fatal(1, "Initial value of unvisited nodes is %d, but should be %d", unvisited_nodes, number_of_nodes);
 
 		// Visit nodes
@@ -81,10 +81,12 @@ module VisitedStoreTestbench
 
 			@(posedge clock);
 			@(posedge clock);
-			if(prev_vector[index] != prev_node)$fatal(1, "Prev vector did not update correctly");
-			if(unvisited_nodes != number_of_nodes-1-i)$fatal(1, "Prev vector did not update correctly");
+			if(prev_vector[index] !== prev_node)$fatal(1, "Prev vector did not update correctly");
+			if(unvisited_nodes !== number_of_nodes-1-i)$fatal(1, "Prev vector did not update correctly");
+
+			set_en = 1'bz;
 		end
-		if(unvisited_nodes != 0)$fatal(1, "Unvisited nodes did not reach zero");
+		if(unvisited_nodes !== 0)$fatal(1, "Unvisited nodes did not reach zero");
 
 		
 		$display("VisitedStore testbench complete");
