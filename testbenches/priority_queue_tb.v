@@ -19,20 +19,10 @@ module PriorityQueueTestbench
 	wire [VALUE_WIDTH-1:0] read_value;
 	wire[INDEX_WIDTH-1:0] min_index;
 	wire[VALUE_WIDTH-1:0] min_value;
-	wire [INDEX_WIDTH*MAX_NODES-1:0] prev_vector_flattened;
-	reg [INDEX_WIDTH-1:0] prev_vector[MAX_NODES-1:0];
-	generate
-		genvar j;
-		for(j=0;j<MAX_NODES;j=j+1)
-			assign  prev_vector_flattened
-									[
-										INDEX_WIDTH-1+INDEX_WIDTH*j:
-										INDEX_WIDTH*j
-									] = prev_vector[j];
-	endgenerate
+	reg [MAX_NODES-1:0] visited_vector;
 
 
-	PriorityQueue #(.MAX_NODES(MAX_NODES)) pq(reset, clock, set_en, index, prev_vector_flattened, write_value, read_value, min_index, min_value);
+	PriorityQueue #(.MAX_NODES(MAX_NODES)) pq(reset, clock, set_en, index, visited_vector, write_value, read_value, min_index, min_value);
 
 	// Setup clock to automatically strobe with a period of 20.
 	always #10000 clock = ~clock;
@@ -43,7 +33,7 @@ module PriorityQueueTestbench
 		// Mark all as unvisited for test purposes
 		for(i=0;i<MAX_NODES;i=i+1)
 		begin
-			prev_vector[i] = `UNVISITED;
+			visited_vector[i] = `UNVISITED;
 		end
 
 		// Reset 

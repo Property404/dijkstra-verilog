@@ -64,9 +64,9 @@ begin
 
 	if(reset)
 	begin
-		row_incomplete = 1'b1;
+		row_incomplete = 1'b0;
 		column = 0;
-		row = 0;
+		row = MAX_NODES-1;
 		stored_base_address = base_address;
 		stored_number_of_nodes = number_of_nodes;
 		ready = 1'b0;

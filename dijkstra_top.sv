@@ -13,6 +13,11 @@ module DijkstraTop
 (
 	input wire reset,
 	input wire clock,
+	input wire enable,
+
+	input wire[INDEX_WIDTH-1:0] source,
+	input wire[INDEX_WIDTH-1:0] destination,
+
 	input wire[INDEX_WIDTH-1:0] number_of_nodes,
 	input wire[MADDR_WIDTH-1:0] base_address,
 
@@ -24,10 +29,14 @@ module DijkstraTop
 
 	output wire [MADDR_WIDTH-1:0] mem_addr,
 	input wire [MDATA_WIDTH-1:0] mem_read_data,
-	output wire [MDATA_WIDTH-1:0] mem_write_data
+	output wire [MDATA_WIDTH-1:0] mem_write_data,
+
+	output reg ready
 );
 
 reg stored_number_of_nodes;
+
+reg controlled_reset;
 
 reg pq_set_distance;
 reg[INDEX_WIDTH-1:0] pq_index;
@@ -51,7 +60,7 @@ reg [MAX_NODES-1:0] visited_vector;
 
 PriorityQueue #(.MAX_NODES(MAX_NODES), .INDEX_WIDTH(INDEX_WIDTH), .VALUE_WIDTH(VALUE_WIDTH))
 	priority_queue (
-		reset,
+		controlled_reset,
 		clock,
 		pq_set_distance,
 		pq_index,
@@ -71,7 +80,7 @@ EdgeCache
 	.MDATA_WIDTH(MDATA_WIDTH)
 )
 	edge_cache(
-		reset,
+		controlled_reset,
 		clock,
 		base_address,
 		number_of_nodes,
@@ -79,25 +88,31 @@ EdgeCache
 		ec_from_node,
 		ec_to_node,
 		mem_addr,
-		mem_data,
+		mem_read_data,
 		mem_read_enable,
 		mem_read_ready,
 		ec_ready,
 		ec_edge_value
 	);
 
-typedef enum {V0, V1, V2, V3, V4, FINAL_STATE} State ;
+typedef enum {RESET_STATE, READY_STATE, V0, V1, V2, V3, V4, FINAL_STATE} State ;
 State state;
 State next_state;
 
 integer i;
 always @(posedge clock)
 begin
+	if(state)
+		$display("Current node: %d", current_node);
 	if(reset)
 	begin
+		ready = 0;
+		pq_index = source;
+
 		// All enables to zero
 		pq_set_distance = 1'b0;
 		ec_query = 1'b0;
+
 
 		// Set everything as unvisited
 		stored_number_of_nodes = number_of_nodes;
@@ -108,7 +123,8 @@ begin
 			prev_vector[i] = `NO_PREVIOUS_NODE;
 		end
 
-		state = V0;
+		state = RESET_STATE;
+		next_state = RESET_STATE;
 	end
 	else
 		state = next_state;
@@ -119,18 +135,32 @@ reg[VALUE_WIDTH-1:0] current_node_value;
 reg[VALUE_WIDTH-1:0] alt;
 always_comb
 begin
+	controlled_reset = 0;
+
 	case(state)
+		// Reset components
+		RESET_STATE:
+		begin
+			controlled_reset = 1;
+			next_state = READY_STATE;
+		end
+
+		// Wait for us to be enabled
+		READY_STATE:
+		begin
+			if(enable)
+				next_state = V0;
+		end
+
+		// New node to be visited
 		V0:
 		begin
-			/* New node to be visited */
-
 			current_node = min_distance_node_index;
 			current_node_value = min_distance_node_value;
 			number_of_unvisited_nodes = number_of_unvisited_nodes - 1;
 			ec_query = 1;
 			ec_from_node = current_node;
 			ec_to_node = 0;
-			pq_index = 0;
 			if(number_of_unvisited_nodes >= 0)
 				next_state = V1;
 			else
@@ -144,6 +174,8 @@ begin
 		end
 		V2:
 		begin
+			pq_index = 0;
+
 			// Wait until we know the edge value
 			if(ec_ready)
 				next_state=V3;
@@ -174,6 +206,7 @@ begin
 		end
 		FINAL_STATE:
 		begin
+			ready = 1;
 			next_state = FINAL_STATE;
 		end
 	endcase
