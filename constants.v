@@ -1,5 +1,5 @@
 // Number of nodes we're working with
-`define DEFAULT_MAX_NODES 512
+`define DEFAULT_MAX_NODES 128
 `define DEFAULT_INDEX_WIDTH 16
 
 // Width of the edge value
@@ -11,4 +11,8 @@
 `define DEFAULT_MDATA_WIDTH 32
 
 `define INFINITY ((2**VALUE_WIDTH)-1)
-`define UNVISITED ((2**INDEX_WIDTH)-1)
+`define NO_PREVIOUS_NODE ((2**INDEX_WIDTH)-1)
+
+`define UNVISITED 0
+`define VISITED 1
+

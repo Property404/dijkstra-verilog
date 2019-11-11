@@ -16,10 +16,8 @@ parameter VALUE_WIDTH=`DEFAULT_VALUE_WIDTH)
 	// This MUST be set on reset to indicate the source node
 	input wire [INDEX_WIDTH-1:0] index,
 
-	// Flattened vector of each index's previous node
-	// That is, it shows the paths. More importantly,
-	// it show which nodes have been visited and which nodes haven't
-	input wire[INDEX_WIDTH*MAX_NODES-1:0] prev_vector_flattened,
+	// Which nodes have been visited??
+	input wire[MAX_NODES-1:0] visited_vector,
 
 	// The value to be set (if set_en is high)
 	input wire [VALUE_WIDTH-1:0] write_value,
@@ -43,21 +41,6 @@ integer i;
 // Output value if get_en is set
 assign read_value = dist_vector[index];
 
-// Unflattened version of the aforementioned prev vector
-wire [INDEX_WIDTH-1:0] prev_vector[MAX_NODES-1:0];
-generate
-	genvar j;
-	for(j=0;j<MAX_NODES;j=j+1)
-	begin
-		assign prev_vector[j] = prev_vector_flattened
-								[
-									INDEX_WIDTH-1+INDEX_WIDTH*j:
-									INDEX_WIDTH*j
-								];
-	end
-endgenerate
-
-
 // Comb logic to get min
 wire [INDEX_WIDTH-1:0] heap[2*MAX_NODES-2:0];
 assign min_index = heap[2*MAX_NODES-2];
@@ -77,9 +60,9 @@ generate
 		for(i=start;i<start+`ITEMS;i=i+2)
 		begin
 			assign heap[MAX_NODES+i/2] =
-				prev_vector[heap[i]] != `UNVISITED?
+				visited_vector[heap[i]] != `UNVISITED?
 					heap[i+1]:
-					prev_vector[heap[i+1]] != `UNVISITED?
+					visited_vector[heap[i+1]] != `UNVISITED?
 						heap[i]:
 						dist_vector[heap[i]] < dist_vector[heap[i+1]]?
 							heap[i]:
