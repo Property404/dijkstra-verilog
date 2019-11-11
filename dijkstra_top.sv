@@ -100,10 +100,12 @@ State state;
 State next_state;
 
 integer i;
+reg[INDEX_WIDTH-1:0] current_node;
+reg[VALUE_WIDTH-1:0] current_node_value;
+reg[VALUE_WIDTH-1:0] alt;
+
 always @(posedge clock)
 begin
-	if(state)
-		$display("Current node: %d", current_node);
 	if(reset)
 	begin
 		ready = 0;
@@ -128,15 +130,8 @@ begin
 	end
 	else
 		state = next_state;
-end
 
-reg[INDEX_WIDTH-1:0] current_node;
-reg[VALUE_WIDTH-1:0] current_node_value;
-reg[VALUE_WIDTH-1:0] alt;
-always_comb
-begin
 	controlled_reset = 0;
-
 	case(state)
 		// Reset components
 		RESET_STATE:
@@ -168,14 +163,14 @@ begin
 		end
 		V1:
 		begin
+			pq_index = 0;
+
 			// Mark as visited
-			visited_vector[current_node] = current_node;
+			visited_vector[current_node] = `VISITED;
 			next_state = V2;
 		end
 		V2:
 		begin
-			pq_index = 0;
-
 			// Wait until we know the edge value
 			if(ec_ready)
 				next_state=V3;
