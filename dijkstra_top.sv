@@ -36,8 +36,6 @@ module DijkstraTop
 	output reg ready
 );
 
-reg stored_number_of_nodes;
-
 reg controlled_reset;
 
 reg pq_set_distance;
@@ -116,7 +114,6 @@ begin
 
 
 		// Set everything as unvisited
-		stored_number_of_nodes = number_of_nodes;
 		number_of_unvisited_nodes = number_of_nodes;
 		for(i=0;i<MAX_NODES;i=i+1)
 		begin
