@@ -98,9 +98,8 @@ begin
 	// Respond to client's request for data
 	ready=0;
 	edge_value = 'bz;
-	if(query_enable && !row_incomplete)
+	if(query_enable)
 	begin
-		// TODO: dump when end is reached
 		if(from_node == row && column > to_node)
 		begin
 			edge_value = row_cache[to_node];
