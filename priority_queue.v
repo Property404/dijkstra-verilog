@@ -49,8 +49,11 @@ assign min_value = dist_vector[min_index];
 // Find min index/value
 `define ITEMS (2*MAX_NODES-start)/2
 generate
-	genvar k; for(k=0;k<MAX_NODES;k=k+1)
+	genvar k;
+	for(k=0;k<MAX_NODES;k=k+1)
+	begin
 		assign heap[k] = k;
+	end
 endgenerate
 generate
 	genvar start;

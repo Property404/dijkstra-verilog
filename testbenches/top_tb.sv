@@ -1,7 +1,7 @@
 `include "constants.v"
 `timescale 1ps/1ps
 
-`define NUMBER_OF_NODES 8
+`define NUMBER_OF_NODES 16
 
 module DijkstraTopTestbench
 #(
@@ -25,7 +25,7 @@ module DijkstraTopTestbench
 	reg [MADDR_WIDTH-1:0] base_address = 0;
 
 	reg [INDEX_WIDTH-1:0] source = 0;
-	reg [MADDR_WIDTH-1:0] destination = `NUMBER_OF_NODES - 1;
+	reg [INDEX_WIDTH-1:0] destination = `NUMBER_OF_NODES - 1;
 
 	wire mem_read_enable;
 	wire mem_write_enable;
@@ -62,6 +62,8 @@ module DijkstraTopTestbench
 		mem_write_data
 	);
 
+	wire [INDEX_WIDTH-1:0] prev_vector[MAX_NODES-1:0];
+
 	DijkstraTop dijkstra(
 		reset,
 		clock,
@@ -77,6 +79,7 @@ module DijkstraTopTestbench
 		mem_addr,
 		mem_read_data,
 		mem_write_data,
+		prev_vector,
 		ready
 	);
 
@@ -88,6 +91,7 @@ module DijkstraTopTestbench
 
 	integer row;
 	integer column;
+	integer i;
 	initial
 	begin
 		@(posedge clock);
@@ -149,6 +153,18 @@ module DijkstraTopTestbench
 		begin
 			@(posedge clock);
 		end
+
+		// Display prev[] results
+		$write("{");
+		for(i=0;i<number_of_nodes;i=i+1)
+		begin
+			if(prev_vector[i] == `NO_PREVIOUS_NODE)
+				$write("-");
+			else
+				$write("%d", prev_vector[i]);
+			$write(", ");
+		end
+		$display("}");
 
 		$display("Top Test completed successfully");
 		$finish;

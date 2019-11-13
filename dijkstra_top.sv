@@ -31,6 +31,8 @@ module DijkstraTop
 	input wire [MDATA_WIDTH-1:0] mem_read_data,
 	output wire [MDATA_WIDTH-1:0] mem_write_data,
 
+	reg [INDEX_WIDTH-1:0] prev_vector[MAX_NODES-1:0],
+
 	output reg ready
 );
 
@@ -50,9 +52,6 @@ reg[INDEX_WIDTH-1:0] ec_from_node;
 reg[INDEX_WIDTH-1:0] ec_to_node;
 wire ec_ready;
 wire [VALUE_WIDTH-1:0] ec_edge_value;
-
-// Vector with paths of all nodes
-reg [INDEX_WIDTH-1:0] prev_vector[MAX_NODES-1:0];
 
 // Visited nodes
 integer number_of_unvisited_nodes;
@@ -156,7 +155,7 @@ begin
 			ec_query = 1;
 			ec_from_node = current_node;
 			ec_to_node = 0;
-			if(number_of_unvisited_nodes >= 0)
+			if(number_of_unvisited_nodes >= 0 && current_node != destination)
 				next_state = V1;
 			else
 				next_state = FINAL_STATE;
