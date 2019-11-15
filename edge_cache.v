@@ -55,6 +55,17 @@ reg [VALUE_WIDTH-1:0] row_cache[MAX_NODES-1:0];
 // High if we're waiting for a response from RAM
 reg waiting_for_memory;
 
+integer state;
+integer old_state;
+
+always @(reset, mem_read_ready)
+begin
+	if(reset)
+		state = 0;
+	if(!mem_read_ready)
+		state = state +1;
+end
+
 
 always @(posedge clock)
 begin
@@ -64,6 +75,7 @@ begin
 
 	if(reset)
 	begin
+		old_state = 0;
 		row_incomplete = 1'b0;
 		column = 0;
 		row = MAX_NODES-1;
@@ -74,15 +86,18 @@ begin
 	end
 
 	// Fill row_cache
-	if(row_incomplete && !waiting_for_memory)
+	if(row_incomplete && !waiting_for_memory && (state != old_state))
 	begin
 		// Request to read particular cell
-		mem_addr = stored_base_address + row*(MADDR_WIDTH/8)*stored_number_of_nodes + column*MADDR_WIDTH/8;
-		mem_read_enable = 1'b1;
 		waiting_for_memory = 1'b1;
 	end
-	if(waiting_for_memory && mem_read_ready)
+	if(waiting_for_memory)
 	begin
+		mem_read_enable = 1'b1;
+	end
+	if(waiting_for_memory && mem_read_ready) // Problem here. Will count multiple times
+	begin
+		old_state = state;
 
 		waiting_for_memory = 1'b0;
 
@@ -98,20 +113,27 @@ begin
 	// Respond to client's request for data
 	ready=0;
 	edge_value = 'bz;
+
 	if(query_enable)
 	begin
-		if(from_node == row && column > to_node)
+		mem_addr = stored_base_address + row*(MADDR_WIDTH/8)*stored_number_of_nodes + column*MADDR_WIDTH/8;
+		edge_value = row_cache[to_node];
+
+		if(from_node != row)
 		begin
-			edge_value = row_cache[to_node];
-			ready = 1;
-		end
-		else if(from_node != row && !row_incomplete) 
-		begin
-			// We don't have the data. Dump and fill 
 			row = from_node;
 			column = 0;
-			row_incomplete = 1'b1;
+			row_incomplete = 1;
+
+			// Make old_state and state not match
+			// Just a convenient way to do that
+			old_state = state - 1;
 		end
+		else if(column > to_node)
+		begin
+			ready = 1;
+		end
+
 	end
 end
 	

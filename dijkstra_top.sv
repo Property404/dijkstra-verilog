@@ -173,16 +173,21 @@ begin
 		end
 		V3:
 		begin
-			// Check if we need to reduce
-			alt = current_node_value + ec_edge_value;
-			if(alt < pq_distance_read)
+			if(ec_ready)
 			begin
-				// Reduce
-				prev_vector[pq_index] = current_node;
-				pq_distance_to_set = alt;
-				pq_set_distance = 1;
+				// Check if we need to reduce
+				alt = current_node_value + ec_edge_value;
+				if(alt < pq_distance_read)
+				begin
+					// Reduce
+					prev_vector[pq_index] = current_node;
+					pq_distance_to_set = alt;
+					pq_set_distance = 1;
+				end
+				next_state = V4;
 			end
-			next_state = V4;
+			else
+				next_state = V2;// false alarm
 		end
 		V4:
 		begin

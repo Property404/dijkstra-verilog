@@ -76,6 +76,15 @@ module EdgeCacheTestbench
 		edge_value
 	);
 
+	function [VALUE_WIDTH-1:0] calc;
+		input[VALUE_WIDTH-1:0] r;
+		input[VALUE_WIDTH-1:0] c;
+		begin
+			calc = 256 * r + c + 1;
+		end
+	endfunction
+
+
 	// Setup clock to automatically strobe with a period of 20.
 	always #10000 clock = ~clock;
 
@@ -99,8 +108,8 @@ module EdgeCacheTestbench
 			begin
 				// Write to address
 				@(posedge clock);
-				mem_write_data = row*column;
-				if(mem_write_data !== row*column)
+				mem_write_data = calc(row, column);
+				if(mem_write_data !== calc(row, column))
 					$fatal(1, "you done goofed");
 				write_addr = `BASE_ADDRESS+(row*`NUMBER_OF_NODES+column)*MADDR_WIDTH/8;
 				mem_write_enable = 1;
@@ -110,7 +119,7 @@ module EdgeCacheTestbench
 				begin
 					@(posedge clock);
 				end
-				if(mem_write_data !== row*column)
+				if(mem_write_data !== calc(row, column))
                     $fatal(1, "you done goofed");
 				@(posedge clock);
 
@@ -166,16 +175,16 @@ module EdgeCacheTestbench
 				to_node = column;
 				query_enable = 1;
 				$display("ROW, COLUMN=%d, %d", row, column);
+				@(posedge clock);
 				while(ready == 0)
 				begin
 					@(posedge clock);
 				end
 				$display("EDGE=%d", edge_value);
-				if(edge_value !== row*column)
-					$fatal(1, "edge_value(%d) != %d", edge_value, row*column);
+				if(edge_value !== calc(row, column))
+					$fatal(1, "edge_value(%d) != %d", edge_value, calc(row, column));
 				@(posedge clock);
-				query_enable = 0;
-				@(posedge clock);
+				query_enable = $urandom() % 2;
 			end
 		end
 

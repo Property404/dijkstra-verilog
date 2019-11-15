@@ -54,11 +54,11 @@ module BlockRamTestbench
 		@(posedge clock);
 		$display("Reset complete");
 
-		for(i=0;i<10;i=i+1)
+		for(i=3;i<16;i=i+1)
 		begin
 			// Write to address
 			@(posedge clock);
-			mem_write_data = i*i + 5;
+			mem_write_data = $urandom()%(2**MADDR_WIDTH - 1);
 			mem_addr = i*MADDR_WIDTH/8;
 			mem_read_enable = 'bz;
 			mem_write_enable = 1;
@@ -68,11 +68,9 @@ module BlockRamTestbench
 			begin
 				@(posedge clock);
 			end
-			@(posedge clock);
 			mem_write_enable = 'bz;
 
 			// Confirm that we wrote correctly
-			@(posedge clock);
 			mem_read_enable = 1;
 			// Wait until we read
 			while(mem_read_ready == 0)

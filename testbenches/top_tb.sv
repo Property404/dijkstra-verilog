@@ -1,7 +1,7 @@
 `include "constants.v"
 `timescale 1ps/1ps
 
-`define NUMBER_OF_NODES 16
+`define NUMBER_OF_NODES 8
 
 module DijkstraTopTestbench
 #(
