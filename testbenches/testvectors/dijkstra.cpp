@@ -110,7 +110,7 @@ bool operator>(const PriorityNode& lhs, const PriorityNode& rhs)
 	}
 	return false;
 }
-void dijkstra(const Graph& graph, int source, int target)
+void dijkstra(const Graph& graph, int source, int target, bool show_columns)
 {
 	const int num_nodes = graph.get_number_of_nodes();
 
@@ -153,14 +153,21 @@ void dijkstra(const Graph& graph, int source, int target)
 	
 	for(int i=0;i<num_nodes;i++)
 	{
-		cout<<"\t"<<static_cast<char>('A'+prev[i]);
+		if(show_columns)
+			cout<<"\t"<<static_cast<char>('A'+prev[i]);
+		else
+			cout<<prev[i]<<"\t";
 	}
 	cout<<"\n";
-	for(int i=0;i<num_nodes;i++)
+
+	if (show_columns)
 	{
-		cout<<"\t"<<dist[i];
+		for(int i=0;i<num_nodes;i++)
+		{
+			cout<<"\t"<<dist[i];
+		}
+		cout<<"\n";
 	}
-	cout<<"\n";
 }
 
 int main(int argc, const char* argv[])
@@ -202,5 +209,5 @@ int main(int argc, const char* argv[])
 	Graph graph(size);
 	graph.display(args::get(show_columns));
 	cout<<"\n";
-	dijkstra(graph, 0, size-1);
+	dijkstra(graph, 0, size-1, show_columns);
 }
