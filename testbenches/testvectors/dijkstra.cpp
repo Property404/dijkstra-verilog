@@ -3,8 +3,12 @@
 #include <iostream>
 #include <vector>
 #include <queue>
+#include "args.hxx"
+
 using namespace std;
 constexpr int INFINITY = 100;
+constexpr int DEFAULT_NUMBER_OF_NODES = 6;
+
 class Graph
 {
 	int** edge_matrix;
@@ -29,19 +33,26 @@ class Graph
 		}
 	}
 
-	void display()const
+	void display(bool show_columns = false)const
 	{
 		const auto n = number_of_nodes;
-		cout<<"\t";
-		for(int i=0;i<n;i++)
+
+		if(show_columns)
 		{
-			cout<<static_cast<char>(i+'A')<<'\t';
+			cout<<"\t";
+			for(int i=0;i<n;i++)
+			{
+				cout<<static_cast<char>(i+'A')<<'\t';
+			}
 		}
 
 		for(int row=0;row<n;row++)
 		{
 			cout<<"\n";
-			cout<<static_cast<char>(row+'A')<<"\t";
+
+			if(show_columns)
+				cout<<static_cast<char>(row+'A')<<"\t";
+
 			for(int column=0;column<n;column++)
 			{
 				cout<<get_length(row, column)<<'\t';
@@ -72,8 +83,8 @@ class Graph
 
 class PriorityNode{
 	public:
-		int index;
-		int priority;
+	int index;
+	int priority;
 
 	PriorityNode(int i, int p)
 	{
@@ -120,11 +131,9 @@ void dijkstra(const Graph& graph, int source, int target)
 		if(nodes.top().priority != dist[nodes.top().index])	
 		{
 			nodes.pop();
-			cout<<"Popping old value\n";
 			continue;
 		}
 		const int u = nodes.top().index;nodes.pop();
-		cout<<static_cast<char>('A'+u)<<endl;
 		visited[u] = true;
 		if(u == target)break;
 
@@ -154,12 +163,44 @@ void dijkstra(const Graph& graph, int source, int target)
 	cout<<"\n";
 }
 
-int main()
+int main(int argc, const char* argv[])
 {
-	int n = 6;
-	srand(time(NULL));
-	Graph graph(n);
-	graph.display();
+	args::ArgumentParser parser("Shortest path calculator", "");
+	args::HelpFlag help(parser, "help", "Display this tedxt", {'h', "help"});
+	args::Flag show_columns(parser, "show columns", "Show columns", {'c'});
+	args::Flag show_meta(parser, "meta", "Display meta", {'m'});
+	args::ValueFlag<int> size_opt(parser, "size", "Set number of nodes", {'n'});
+	args::ValueFlag<int> seed_opt(parser, "seed", "Set seed", {'s'});
+
+	
+	try
+	{
+		parser.ParseCLI(argc, argv);
+	}
+	catch(args::Help)
+	{
+		cout << parser;
+		return 0;
+	}
+	catch(args::ParseError e)
+	{
+		cerr << e.what() << endl;
+		cerr << parser;
+		return 1;
+	}
+
+	const int size = size_opt?args::get(size_opt):DEFAULT_NUMBER_OF_NODES;
+	const int seed = seed_opt?args::get(seed_opt):time(NULL);
+
+	if(args::get(show_meta))
+	{
+		cout << size << " " << seed << endl;
+	}
+
+	srand(seed);
+
+	Graph graph(size);
+	graph.display(args::get(show_columns));
 	cout<<"\n";
-	dijkstra(graph, 0, n-1);
+	dijkstra(graph, 0, size-1);
 }
