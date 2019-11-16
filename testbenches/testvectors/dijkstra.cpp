@@ -177,12 +177,12 @@ int main(int argc, const char* argv[])
 	{
 		parser.ParseCLI(argc, argv);
 	}
-	catch(args::Help)
+	catch(const args::Help&)
 	{
 		cout << parser;
 		return 0;
 	}
-	catch(args::ParseError e)
+	catch(const args::ParseError& e)
 	{
 		cerr << e.what() << endl;
 		cerr << parser;
