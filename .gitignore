@@ -1,6 +1,8 @@
 *
 !*.v
 !*.sv
+!*.cpp
 !.gitignore
 !.travis.yml
 !testbenches
+!testbenches/testvectors
