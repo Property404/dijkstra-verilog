@@ -1,7 +1,38 @@
 `include "constants.v"
 `timescale 1ps/1ps
 
+`define BASE_ADDRESS 0
 `define NUMBER_OF_NODES 8
+`define TEST_VECTOR_FILE "testvectors/testvectors.txt"
+
+function string get_tv_path();
+    int i;
+    int str_index;
+    logic found_path;
+    string fullpath_filename = `__FILE__;
+    string test_vector_file = `TEST_VECTOR_FILE;
+    automatic string ret="";
+
+
+	$display("~~~~~~~~~~~~~~~~~~~~~~~~");
+	$display("%s", fullpath_filename);
+    for (i = fullpath_filename.len()-1; i>0; i=i-1) begin
+        if (fullpath_filename[i] == "/" || fullpath_filename[i] == "\\")
+        begin
+            found_path=1;
+            str_index=i;
+            break;
+        end
+    end
+    if (found_path===1) begin
+        ret=fullpath_filename.substr(0,str_index);
+    end else begin
+       	$fatal("Bleeaaargh");
+    end
+        
+
+    return {ret, test_vector_file};
+endfunction
 
 module DijkstraTopTestbench
 #(
@@ -19,10 +50,9 @@ module DijkstraTopTestbench
 	reg enable = 0;
 	
 	wire ready;
-	
 
 	reg [INDEX_WIDTH-1:0] number_of_nodes = `NUMBER_OF_NODES;
-	reg [MADDR_WIDTH-1:0] base_address = 0;
+	reg [MADDR_WIDTH-1:0] base_address = `BASE_ADDRESS;
 
 	reg [INDEX_WIDTH-1:0] source = 0;
 	reg [INDEX_WIDTH-1:0] destination = `NUMBER_OF_NODES - 1;
@@ -62,8 +92,6 @@ module DijkstraTopTestbench
 		mem_write_data
 	);
 
-	wire [INDEX_WIDTH-1:0] prev_vector[MAX_NODES-1:0];
-
 	DijkstraTop dijkstra(
 		reset,
 		clock,
@@ -79,7 +107,6 @@ module DijkstraTopTestbench
 		mem_addr,
 		mem_read_data,
 		mem_write_data,
-		prev_vector,
 		ready
 	);
 
@@ -92,81 +119,116 @@ module DijkstraTopTestbench
 	integer row;
 	integer column;
 	integer i;
+	integer j;
+	integer num_test_cases;
+	integer seed;
+	integer testvectors;
+
+	reg[INDEX_WIDTH-1:0] prev;
+
 	initial
 	begin
-		@(posedge clock);
-		@(posedge clock);
 
-		// Create graph
-		`define POS (row*number_of_nodes + column)
-		`define TPOS (column*number_of_nodes + row)
-		for(row=0;row<number_of_nodes;row=row+1)
-			for(column=0;column<number_of_nodes;column=column+1)
-			begin
-			   	tb_write_data = row==column?0:
-			   		row>column?graph[`TPOS]:$urandom()%(100);
-				graph[`POS] = tb_write_data;
 
-				// Assert we recorded the edge value
-				if(graph[`POS] !== tb_write_data)
-					$fatal(1, "Edge value not recorded");
+		// Load test vectors
+		testvectors = $fopen(get_tv_path(), "r");
+		if(testvectors == 0)
+			$fatal(1, "Couldn't load test vectors");
+		$fscanf(testvectors, "%d", num_test_cases);
 
-				// Write to memory
-				do_write = 1;
-				tb_addr = base_address + `POS * MADDR_WIDTH/8;
-				while(mem_write_ready == 0)
-					@(posedge clock);
-				@(posedge clock);
-				do_write = 0;
-				@(posedge clock);
-
-				// Make sure we wrote correctly
-				do_read = 1;
-				while(mem_read_ready == 0)
-					@(posedge clock);
-				if(mem_read_data !== graph[`POS])
-					$fatal(1, "Did not write edge value to memory");
-				@(posedge clock);
-				do_read = 0;
-			end
-
-		// Print graph
-		for(row=0;row<number_of_nodes;row=row+1)
+		for(i=0;i<num_test_cases;i=i+1)
 		begin
-			for(column=0;column<number_of_nodes;column=column+1)
+			$fscanf(testvectors, "%d", number_of_nodes);
+			$fscanf(testvectors, "%d", seed);
+			@(posedge clock);
+			@(posedge clock);
+
+			// Create graph
+			`define POS (row*number_of_nodes + column)
+			`define TPOS (column*number_of_nodes + row)
+			for(row=0;row<number_of_nodes;row=row+1)
+				for(column=0;column<number_of_nodes;column=column+1)
+				begin
+
+					// Load edge value into graph
+					$fscanf(testvectors, "%d", tb_write_data);
+					graph[`POS] = tb_write_data;
+
+					// Assert we recorded the edge value
+					if(graph[`POS] !== tb_write_data)
+						$fatal(1, "Edge value not recorded");
+
+					// Write to memory
+					do_write = 1;
+					tb_addr = base_address + `POS * MADDR_WIDTH/8;
+					while(mem_write_ready == 0)
+						@(posedge clock);
+					@(posedge clock);
+					do_write = 0;
+					@(posedge clock);
+
+					// Make sure we wrote correctly
+					do_read = 1;
+					while(mem_read_ready == 0)
+						@(posedge clock);
+					if(mem_read_data !== graph[`POS])
+						$fatal(1, "Did not write edge value to memory");
+					@(posedge clock);
+					do_read = 0;
+				end
+
+			// Print graph
+			$display("~~~GRAPH~~~");
+			for(row=0;row<number_of_nodes;row=row+1)
 			begin
-				$write("%d ", graph[`POS]);
+				for(column=0;column<number_of_nodes;column=column+1)
+				begin
+					$write("%d ", graph[`POS]);
+				end
+				$display("\n");
 			end
-			$display("\n");
-		end
 
 		
-		// Reset and enable
-		reset = 0;
-		enable = 1;
-		@(posedge clock);
-		reset = 1;
-		@(posedge clock);
-		reset = 0;
-
-		while(ready !== 1)
-		begin
+			// Reset and enable
+			reset = 0;
+			enable = 1;
 			@(posedge clock);
-		end
+			reset = 1;
+			@(posedge clock);
+			reset = 0;
 
-		// Display prev[] results
-		$write("{");
-		for(i=0;i<number_of_nodes;i=i+1)
-		begin
-			if(prev_vector[i] == `NO_PREVIOUS_NODE)
-				$write("-");
-			else
-				$write("%d", prev_vector[i]);
-			$write(", ");
+			while(ready !== 1)
+			begin
+				@(posedge clock);
+			end
+			@(posedge clock);
+
+			
+			// Confirm we've written correctly
+			$display("Prev:");
+			for(j=0;j<number_of_nodes;j++)
+			begin
+				tb_addr = `BASE_ADDRESS + (number_of_nodes**2+j) * (MADDR_WIDTH/8);
+				do_read = 1;
+				@(posedge clock);
+				while(mem_read_ready !== 1)
+				begin
+					@(posedge clock);
+				end
+				@(posedge clock);
+				$fscanf(testvectors, "%d", prev);
+				$write("0x%x ", prev);
+				if(mem_read_data !== prev)
+				    $fatal(1, "%d !== %d", mem_read_data, prev);
+				@(posedge clock);
+				do_read = 0;
+				@(posedge clock);
+			end
+			$display("");
 		end
-		$display("}");
 
 		$display("Top Test completed successfully");
+		$fclose(testvectors);
 		$finish;
 
 

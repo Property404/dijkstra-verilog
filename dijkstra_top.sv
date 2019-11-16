@@ -37,6 +37,28 @@ module DijkstraTop
 // Reset components at our will
 reg controlled_reset;
 
+// Keep track of paths
+reg [INDEX_WIDTH-1:0] prev_vector[MAX_NODES-1:0];
+
+// States for the FSM
+typedef enum {RESET_STATE, READY_STATE, V0, V1, V2, V3, V4, WRITE_STATE, FINAL_STATE} State ;
+State state;
+State next_state;
+
+// Visited nodes
+integer number_of_unvisited_nodes;
+reg [MAX_NODES-1:0] visited_vector;
+
+// Just for for loops
+integer i;
+
+// The node we're visiting
+reg[INDEX_WIDTH-1:0] current_node;
+reg[VALUE_WIDTH-1:0] current_node_value;
+
+// Reduction variable
+reg[VALUE_WIDTH-1:0] alt;
+
 
 reg pq_set_distance;
 reg[INDEX_WIDTH-1:0] pq_index;
@@ -115,27 +137,6 @@ Writer
 	writer_ready
 );
 
-// States for the FSM
-typedef enum {RESET_STATE, READY_STATE, V0, V1, V2, V3, V4, WRITE_STATE, FINAL_STATE} State ;
-State state;
-State next_state;
-
-// Visited nodes
-integer number_of_unvisited_nodes;
-reg [MAX_NODES-1:0] visited_vector;
-
-// Use this to keep track of shortest path
-reg [INDEX_WIDTH-1:0] prev_vector[MAX_NODES-1:0];
-
-// Just for for loops
-integer i;
-
-// The node we're visiting
-reg[INDEX_WIDTH-1:0] current_node;
-reg[VALUE_WIDTH-1:0] current_node_value;
-
-// Reduction variable
-reg[VALUE_WIDTH-1:0] alt;
 
 always @(posedge clock)
 begin
@@ -239,6 +240,7 @@ begin
 		end
 		WRITE_STATE:
 		begin
+			ec_query = 0;
 			writer_enable = 1;
 			writer_address = base_address + (number_of_nodes**2)*MADDR_WIDTH/8;
 			if(writer_ready)
@@ -247,6 +249,7 @@ begin
 		FINAL_STATE:
 		begin
 			ready = 1;
+			writer_enable = 0;
 			next_state = FINAL_STATE;
 		end
 	endcase

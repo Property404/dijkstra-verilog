@@ -29,7 +29,7 @@ module Writer
 
 reg[MADDR_WIDTH-1:0] addr;
 
-typedef enum {S0, S1, S2, FINAL} State;
+typedef enum {BEGIN, S0, S1, S2, FINAL} State;
 State state;
 State next_state;
 
@@ -43,10 +43,10 @@ begin
 		mem_write_data = 'z;
 		mem_addr = 'z;
 		addr = starting_address;
-		state = S0;
+		state = BEGIN;
 		index = 0;
 		ready = 0;
-		next_state = FINAL;
+		next_state = BEGIN;
 	end
 
 	else if(enable)
@@ -54,18 +54,26 @@ begin
 		mem_addr = addr;
 
 		case(state)
+			BEGIN:
+			begin
+				if(enable)
+					next_state = S0;
+			end
+
 			S0:
 			begin
 				mem_write_enable = 1;
+
 				mem_write_data = prev_vector[index];
-				next_state = S1;
+				addr = starting_address + index*MADDR_WIDTH/8;
+
 				index += 1;
+				next_state = S1;
 			end
 			S1:
 			begin
 				if(mem_write_ready)
 				begin
-					addr = starting_address + index*MADDR_WIDTH/8;
 					mem_write_enable = 0;
 					if(index > number_of_nodes)
 						next_state = FINAL;

@@ -73,7 +73,7 @@ begin
 	mem_addr = 'bz;
 	mem_read_enable = 1'bz;
 
-	if(reset)
+	if(reset || !query_enable)
 	begin
 		old_state = 0;
 		row_incomplete = 1'b0;

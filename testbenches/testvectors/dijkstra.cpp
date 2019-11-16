@@ -208,6 +208,7 @@ int main(int argc, const char* argv[])
 
 	Graph graph(size);
 	graph.display(args::get(show_columns));
-	cout<<"\n";
+	if(show_columns)
+		cout<<"\n";
 	dijkstra(graph, 0, size-1, show_columns);
 }
