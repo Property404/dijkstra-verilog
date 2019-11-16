@@ -31,12 +31,12 @@ module DijkstraTop
 	input wire [MDATA_WIDTH-1:0] mem_read_data,
 	output wire [MDATA_WIDTH-1:0] mem_write_data,
 
-	reg [INDEX_WIDTH-1:0] prev_vector[MAX_NODES-1:0],
-
 	output reg ready
 );
 
+// Reset components at our will
 reg controlled_reset;
+
 
 reg pq_set_distance;
 reg[INDEX_WIDTH-1:0] pq_index;
@@ -44,16 +44,6 @@ reg[VALUE_WIDTH-1:0] pq_distance_to_set;
 wire[VALUE_WIDTH-1:0] pq_distance_read;
 wire[INDEX_WIDTH-1:0] min_distance_node_index;
 wire[VALUE_WIDTH-1:0] min_distance_node_value;
-
-reg ec_query;
-reg[INDEX_WIDTH-1:0] ec_from_node;
-reg[INDEX_WIDTH-1:0] ec_to_node;
-wire ec_ready;
-wire [VALUE_WIDTH-1:0] ec_edge_value;
-
-// Visited nodes
-integer number_of_unvisited_nodes;
-reg [MAX_NODES-1:0] visited_vector;
 
 PriorityQueue #(.MAX_NODES(MAX_NODES), .INDEX_WIDTH(INDEX_WIDTH), .VALUE_WIDTH(VALUE_WIDTH))
 	priority_queue (
@@ -67,6 +57,13 @@ PriorityQueue #(.MAX_NODES(MAX_NODES), .INDEX_WIDTH(INDEX_WIDTH), .VALUE_WIDTH(V
 		min_distance_node_index,
 		min_distance_node_value
 	);
+
+
+reg ec_query;
+reg[INDEX_WIDTH-1:0] ec_from_node;
+reg[INDEX_WIDTH-1:0] ec_to_node;
+wire ec_ready;
+wire [VALUE_WIDTH-1:0] ec_edge_value;
 
 EdgeCache
 #(
@@ -92,13 +89,52 @@ EdgeCache
 		ec_edge_value
 	);
 
-typedef enum {RESET_STATE, READY_STATE, V0, V1, V2, V3, V4, FINAL_STATE} State ;
+reg writer_enable;
+wire writer_ready;
+reg[MADDR_WIDTH-1:0] writer_address;
+
+Writer 
+#(
+	.MAX_NODES(MAX_NODES),
+	.INDEX_WIDTH(INDEX_WIDTH),
+	.VALUE_WIDTH(VALUE_WIDTH),
+	.MADDR_WIDTH(MADDR_WIDTH),
+	.MDATA_WIDTH(MDATA_WIDTH)
+)writer
+(
+	reset,
+	clock,
+	writer_enable,
+	writer_address,
+	prev_vector,
+	number_of_nodes,
+	mem_write_enable,
+	mem_write_ready,
+	mem_addr,
+	mem_write_data,
+	writer_ready
+);
+
+// States for the FSM
+typedef enum {RESET_STATE, READY_STATE, V0, V1, V2, V3, V4, WRITE_STATE, FINAL_STATE} State ;
 State state;
 State next_state;
 
+// Visited nodes
+integer number_of_unvisited_nodes;
+reg [MAX_NODES-1:0] visited_vector;
+
+// Use this to keep track of shortest path
+reg [INDEX_WIDTH-1:0] prev_vector[MAX_NODES-1:0];
+
+// Just for for loops
 integer i;
+
+// The node we're visiting
 reg[INDEX_WIDTH-1:0] current_node;
 reg[VALUE_WIDTH-1:0] current_node_value;
+
+// Reduction variable
 reg[VALUE_WIDTH-1:0] alt;
 
 always @(posedge clock)
@@ -134,6 +170,7 @@ begin
 		begin
 			controlled_reset = 1;
 			next_state = READY_STATE;
+			writer_enable = 0;
 		end
 
 		// Wait for us to be enabled
@@ -155,7 +192,7 @@ begin
 			if(number_of_unvisited_nodes >= 0 && current_node != destination)
 				next_state = V1;
 			else
-				next_state = FINAL_STATE;
+				next_state = WRITE_STATE;
 		end
 		V1:
 		begin
@@ -199,6 +236,13 @@ begin
 				next_state = V0;
 			else
 				next_state = V2;
+		end
+		WRITE_STATE:
+		begin
+			writer_enable = 1;
+			writer_address = base_address + (number_of_nodes**2)*MADDR_WIDTH/8;
+			if(writer_ready)
+				next_state = FINAL_STATE;
 		end
 		FINAL_STATE:
 		begin
