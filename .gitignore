@@ -4,8 +4,11 @@
 !*.cpp
 !*.hxx
 !*.sh
+!*.placeholder
 !.gitignore
 !.travis.yml
 !src
 !src/testbenches
 !src/testbenches/testvectors
+!reports
+!constraints

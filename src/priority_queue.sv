@@ -32,9 +32,6 @@ parameter VALUE_WIDTH=`DEFAULT_VALUE_WIDTH)
 	reg [VALUE_WIDTH-1:0] dist_vector[MAX_NODES-1:0]
 );
 
-// Weakly pull down set_en
-assign (weak1,weak0) set_en = 1'b0;
-
 // Just a counting var for for-loops
 integer i;
 
