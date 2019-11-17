@@ -2,6 +2,7 @@
 !*.v
 !*.sv
 !*.cpp
+!*.tcl
 !*.hxx
 !*.sh
 !*.placeholder
@@ -12,3 +13,5 @@
 !src/testbenches/testvectors
 !reports
 !constraints
+
+.*.tcl
