@@ -55,7 +55,7 @@ module DijkstraTopTestbench
 	reg [MADDR_WIDTH-1:0] base_address = `BASE_ADDRESS;
 
 	reg [INDEX_WIDTH-1:0] source = 0;
-	reg [INDEX_WIDTH-1:0] destination = `NUMBER_OF_NODES - 1;
+	reg [INDEX_WIDTH-1:0] destination = 'x;
 
 	wire mem_read_enable;
 	wire mem_write_enable;
@@ -140,6 +140,7 @@ module DijkstraTopTestbench
 		begin
 			$fscanf(testvectors, "%d", number_of_nodes);
 			$fscanf(testvectors, "%d", seed);
+			destination = number_of_nodes - 1;
 			@(posedge clock);
 			@(posedge clock);
 
@@ -218,8 +219,9 @@ module DijkstraTopTestbench
 				@(posedge clock);
 				$fscanf(testvectors, "%d", prev);
 				$write("0x%x ", prev);
-				if(mem_read_data !== prev)
-				    $fatal(1, "%d !== %d", mem_read_data, prev);
+				if(prev !== `NO_PREVIOUS_NODE)
+					if(mem_read_data !== prev)
+						$fatal(1, "%d !== %d", mem_read_data, prev);
 				@(posedge clock);
 				do_read = 0;
 				@(posedge clock);

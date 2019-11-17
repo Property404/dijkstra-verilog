@@ -110,7 +110,7 @@ bool operator>(const PriorityNode& lhs, const PriorityNode& rhs)
 	}
 	return false;
 }
-void dijkstra(const Graph& graph, int source, int target, bool show_columns)
+void dijkstra(const Graph& graph, int source, int target, bool show_columns, bool ignore_other_paths)
 {
 	const int num_nodes = graph.get_number_of_nodes();
 
@@ -150,6 +150,20 @@ void dijkstra(const Graph& graph, int source, int target, bool show_columns)
 			}
 		}
 	}
+
+	if(ignore_other_paths)
+	{
+		vector<int> prev2(num_nodes, -1);
+		int j=num_nodes-1;
+		while(j != source)
+		{
+			prev2[j] = prev[j];
+			j = prev2[j];
+		}
+		for(int i=0;i<num_nodes;i++)
+			prev[i] = prev2[i];
+	}
+	
 	
 	for(int i=0;i<num_nodes;i++)
 	{
@@ -176,6 +190,7 @@ int main(int argc, const char* argv[])
 	args::HelpFlag help(parser, "help", "Display this tedxt", {'h', "help"});
 	args::Flag show_columns(parser, "show columns", "Show columns", {'c'});
 	args::Flag show_meta(parser, "meta", "Display meta", {'m'});
+	args::Flag ignore_other_paths(parser, "ignore_other_paths", "Ignore unimportant", {'i'});
 	args::ValueFlag<int> size_opt(parser, "size", "Set number of nodes", {'n'});
 	args::ValueFlag<int> seed_opt(parser, "seed", "Set seed", {'s'});
 
@@ -210,5 +225,5 @@ int main(int argc, const char* argv[])
 	graph.display(args::get(show_columns));
 	if(show_columns)
 		cout<<"\n";
-	dijkstra(graph, 0, size-1, show_columns);
+	dijkstra(graph, 0, size-1, show_columns, ignore_other_paths);
 }
