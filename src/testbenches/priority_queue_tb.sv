@@ -4,7 +4,7 @@
 
 module PriorityQueueTestbench
 #(
-	parameter MAX_NODES= 8,
+	parameter MAX_NODES= `DEFAULT_MAX_NODES,
 	parameter INDEX_WIDTH=`DEFAULT_INDEX_WIDTH,
 	parameter VALUE_WIDTH=`DEFAULT_VALUE_WIDTH
 )

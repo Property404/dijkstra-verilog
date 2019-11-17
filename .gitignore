@@ -6,5 +6,6 @@
 !*.sh
 !.gitignore
 !.travis.yml
-!testbenches
-!testbenches/testvectors
+!src
+!src/testbenches
+!src/testbenches/testvectors

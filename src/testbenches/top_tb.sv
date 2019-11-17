@@ -126,6 +126,7 @@ module DijkstraTopTestbench
 	integer num_test_cases;
 	integer seed;
 	integer testvectors;
+	integer _;
 
 	reg[INDEX_WIDTH-1:0] prev;
 
@@ -137,12 +138,12 @@ module DijkstraTopTestbench
 		testvectors = $fopen(get_tv_path(), "r");
 		if(testvectors == 0)
 			$fatal(1, "Couldn't load test vectors");
-		$fscanf(testvectors, "%d", num_test_cases);
+		_  = $fscanf(testvectors, "%d", num_test_cases);
 
 		for(i=0;i<num_test_cases;i=i+1)
 		begin
-			$fscanf(testvectors, "%d", number_of_nodes);
-			$fscanf(testvectors, "%d", seed);
+			_ = $fscanf(testvectors, "%d", number_of_nodes);
+			_ = $fscanf(testvectors, "%d", seed);
 			destination = number_of_nodes - 1;
 			@(posedge clock);
 			@(posedge clock);
@@ -155,7 +156,7 @@ module DijkstraTopTestbench
 				begin
 
 					// Load edge value into graph
-					$fscanf(testvectors, "%d", tb_write_data);
+					_ = $fscanf(testvectors, "%d", tb_write_data);
 					graph[`POS] = tb_write_data;
 
 					// Assert we recorded the edge value
@@ -220,7 +221,7 @@ module DijkstraTopTestbench
 					@(posedge clock);
 				end
 				@(posedge clock);
-				$fscanf(testvectors, "%d", prev);
+				_ = $fscanf(testvectors, "%d", prev);
 				$write("0x%x ", prev);
 				if(prev !== `NO_PREVIOUS_NODE)
 					if(mem_read_data !== prev)
@@ -230,7 +231,7 @@ module DijkstraTopTestbench
 				@(posedge clock);
 			end
 			$display("");
-			$fscanf(testvectors, "%d", prev);
+			_ = $fscanf(testvectors, "%d", prev);
 			if(prev !== shortest_distance)
 				$fatal("spd: %d !== %d", prev, shortest_distance);
 		end

@@ -43,7 +43,7 @@ reg controlled_reset;
 reg [INDEX_WIDTH-1:0] prev_vector[MAX_NODES-1:0];
 
 // States for the FSM
-typedef enum {RESET_STATE, READY_STATE, V0, V1, V2, V3, V4, WRITE_STATE, FINAL_STATE} State ;
+typedef enum {RESET_STATE, READY_STATE, V0, V1, V2, V3, V4, V5, WRITE_STATE, FINAL_STATE} State ;
 State state;
 State next_state;
 
@@ -236,6 +236,10 @@ begin
 		V4:
 		begin
 			pq_set_distance=0;
+			next_state = V5;
+		end
+		V5:
+		begin
 			pq_index = pq_index + 1;
 			ec_to_node = ec_to_node + 1;
 
