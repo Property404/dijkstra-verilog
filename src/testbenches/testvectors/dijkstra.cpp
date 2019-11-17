@@ -6,8 +6,8 @@
 #include "args.hxx"
 
 using namespace std;
-constexpr int INFINITY = 100;
-constexpr int DEFAULT_NUMBER_OF_NODES = 6;
+#define DJ_INFINITY 100
+#define DEFAULT_NUMBER_OF_NODES 6
 
 class Graph
 {
@@ -114,7 +114,7 @@ void dijkstra(const Graph& graph, int source, int target, bool show_columns, boo
 {
 	const int num_nodes = graph.get_number_of_nodes();
 
-	vector<int> dist(num_nodes, INFINITY);
+	vector<int> dist(num_nodes, DJ_INFINITY);
 	vector<int> prev(num_nodes, -1);
 	vector<bool> visited(num_nodes, false);
 	dist[source] = 0;

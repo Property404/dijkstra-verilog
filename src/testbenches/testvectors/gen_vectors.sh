@@ -9,10 +9,15 @@ NUM_TEST_CASES=$((TESTS_PER_SIZE*(MAX_SIZE-MIN_SIZE+1)))
 # Build generator
 if [ ! -f $EXECUTABLE ]; then
 	echo "Compiling $EXECUTABLE"
-	g++ *.cpp -o $EXECUTABLE -fmax-errors=2 -Wall
+	g++ -std=c++11 *.cpp -o $EXECUTABLE -fmax-errors=2 -Wall -Werror
+	if [ ! -f $EXECUTABLE ]; then
+		exit 1;
+	fi
+	echo "Compiled"
 fi
 
 # Create new output file
+echo "Creating test vectors"
 rm -f $OUTPUT
 echo $NUM_TEST_CASES > $OUTPUT
 
@@ -24,6 +29,8 @@ do
 		./$EXECUTABLE -mi -n $size -s $((RANDOM%65536)) >> $OUTPUT
 	done
 done
+
+echo "Done"
 
 
 
