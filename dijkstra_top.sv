@@ -31,6 +31,8 @@ module DijkstraTop
 	input wire [MDATA_WIDTH-1:0] mem_read_data,
 	output wire [MDATA_WIDTH-1:0] mem_write_data,
 
+	output wire[VALUE_WIDTH-1:0] shortest_distance,
+
 	output reg ready
 );
 
@@ -48,6 +50,9 @@ State next_state;
 // Visited nodes
 integer number_of_unvisited_nodes;
 reg [MAX_NODES-1:0] visited_vector;
+
+wire [VALUE_WIDTH-1:0] dist_vector[MAX_NODES-1:0];
+assign shortest_distance = dist_vector[destination];
 
 // Just for for loops
 integer i;
@@ -77,7 +82,8 @@ PriorityQueue #(.MAX_NODES(MAX_NODES), .INDEX_WIDTH(INDEX_WIDTH), .VALUE_WIDTH(V
 		pq_distance_to_set,
 		pq_distance_read,
 		min_distance_node_index,
-		min_distance_node_value
+		min_distance_node_value,
+		dist_vector
 	);
 
 

@@ -182,6 +182,10 @@ void dijkstra(const Graph& graph, int source, int target, bool show_columns, boo
 		}
 		cout<<"\n";
 	}
+	else
+	{
+		cout<<dist[num_nodes-1]<<endl;
+	}
 }
 
 int main(int argc, const char* argv[])

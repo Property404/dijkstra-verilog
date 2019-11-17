@@ -27,10 +27,10 @@ parameter VALUE_WIDTH=`DEFAULT_VALUE_WIDTH)
 
 	// Return highest priority node/distance
 	output wire [INDEX_WIDTH-1:0] min_index,
-	output wire [VALUE_WIDTH-1:0] min_value
-);
+	output wire [VALUE_WIDTH-1:0] min_value,
 
-reg [VALUE_WIDTH-1:0] dist_vector[MAX_NODES-1:0];
+	reg [VALUE_WIDTH-1:0] dist_vector[MAX_NODES-1:0]
+);
 
 // Weakly pull down set_en
 assign (weak1,weak0) set_en = 1'b0;

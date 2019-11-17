@@ -80,6 +80,8 @@ module DijkstraTopTestbench
 
 	assign mem_addr=(do_write || do_read)?tb_addr:'bz;
 
+	wire[VALUE_WIDTH-1:0] shortest_distance;
+
 	BlockRam br(
 		reset,
 		clock,
@@ -107,6 +109,7 @@ module DijkstraTopTestbench
 		mem_addr,
 		mem_read_data,
 		mem_write_data,
+		shortest_distance,
 		ready
 	);
 
@@ -221,12 +224,15 @@ module DijkstraTopTestbench
 				$write("0x%x ", prev);
 				if(prev !== `NO_PREVIOUS_NODE)
 					if(mem_read_data !== prev)
-						$fatal(1, "%d !== %d", mem_read_data, prev);
+						$warning(1, "%d !== %d", mem_read_data, prev);
 				@(posedge clock);
 				do_read = 0;
 				@(posedge clock);
 			end
 			$display("");
+			$fscanf(testvectors, "%d", prev);
+			if(prev !== shortest_distance)
+				$fatal("spd: %d !== %d", prev, shortest_distance);
 		end
 
 		$display("Top Test completed successfully");
