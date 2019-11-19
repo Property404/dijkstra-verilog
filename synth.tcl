@@ -35,7 +35,7 @@ set_max_area 0
 #}
 
 create_clock clock -name actual_clock_2 -period 5
-compile -map_effort low -area_effort low
+compile -map_effort none -area_effort none
 set dir "reports/chosen"
 file mkdir $dir
 report_area > $dir/area.rpt
