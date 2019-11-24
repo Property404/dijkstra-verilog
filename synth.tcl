@@ -5,6 +5,7 @@ source common.tcl
 puts "|Analyzing"
 analyze -library WORK -format sverilog dijkstra_top.sv
 analyze -library WORK -format sverilog priority_queue.sv
+analyze -library WORK -format sverilog minheap.sv
 analyze -library WORK -format sverilog writer.sv
 analyze -library WORK -format verilog edge_cache.v
 
@@ -34,8 +35,8 @@ set_max_area 0
 #	}
 #}
 
-create_clock clock -name actual_clock_2 -period 5
-compile -map_effort none -area_effort none
+create_clock clock -name actual_clock_2 -period 50
+compile -map_effort low -area_effort low
 set dir "reports/chosen"
 file mkdir $dir
 report_area > $dir/area.rpt

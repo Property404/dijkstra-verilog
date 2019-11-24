@@ -28,6 +28,7 @@ parameter VALUE_WIDTH=`DEFAULT_VALUE_WIDTH)
 	// Return highest priority node/distance
 	output wire [INDEX_WIDTH-1:0] min_index,
 	output wire [VALUE_WIDTH-1:0] min_value,
+	output wire min_ready,
 
 	output reg [VALUE_WIDTH-1:0] dist_vector[MAX_NODES-1:0]
 );
@@ -38,7 +39,7 @@ integer i;
 // Output value if get_en is set
 assign read_value = dist_vector[index];
 
-MinHeap minheap(visited_vector, min_index, min_value, dist_vector);
+MinHeap minheap(reset, clock, set_en, visited_vector, min_index, min_value, min_ready, dist_vector);
 
 always @ (posedge clock) begin
 	// All distances but source should start as INFINITY

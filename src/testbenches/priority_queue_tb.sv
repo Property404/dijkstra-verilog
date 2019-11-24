@@ -20,9 +20,11 @@ module PriorityQueueTestbench
 	wire[INDEX_WIDTH-1:0] min_index;
 	wire[VALUE_WIDTH-1:0] min_value;
 	reg [MAX_NODES-1:0] visited_vector;
+	wire min_ready;
+	wire [VALUE_WIDTH-1:0] dist_vector[MAX_NODES-1:0];
 
 
-	PriorityQueue #(.MAX_NODES(MAX_NODES)) pq(reset, clock, set_en, index, visited_vector, write_value, read_value, min_index, min_value);
+	PriorityQueue #(.MAX_NODES(MAX_NODES)) pq(reset, clock, set_en, index, visited_vector, write_value, read_value, min_index, min_value, min_ready, dist_vector);
 
 	// Setup clock to automatically strobe with a period of 20.
 	always #10000 clock = ~clock;
@@ -67,6 +69,9 @@ module PriorityQueueTestbench
 			end
 		end
 
+		while(!min_ready)
+			@(posedge clock);
+
 		if(min_value !== 0)
 		begin
 			$fatal(1,"Min value should initially be 0");
@@ -92,6 +97,8 @@ module PriorityQueueTestbench
 		@(posedge clock);#1;
 		@(posedge clock);#1;
 		set_en = 1'bz;
+		while(!min_ready)
+			@(posedge clock);
 		if(min_value !== `INFINITY)
 		begin
 			$fatal(1, "Min value should initially be infinity");
@@ -120,6 +127,8 @@ module PriorityQueueTestbench
 				$fatal(1, "FUCK");
 			end
 
+			while(!min_ready)
+				@(posedge clock);
 			if(min !== min_value)
 			begin
 				$fatal(1, "Minimum value is incorrect. Is %d, but should be %d", min_value, min);

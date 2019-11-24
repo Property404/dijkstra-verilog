@@ -37,7 +37,8 @@ module DijkstraTop
 );
 
 // Reset components at our will
-reg controlled_reset;
+reg controlled_ec_reset;
+reg controlled_pq_reset;
 
 // Keep track of paths
 reg [INDEX_WIDTH-1:0] prev_vector[MAX_NODES-1:0];
@@ -71,10 +72,11 @@ reg[VALUE_WIDTH-1:0] pq_distance_to_set;
 wire[VALUE_WIDTH-1:0] pq_distance_read;
 wire[INDEX_WIDTH-1:0] min_distance_node_index;
 wire[VALUE_WIDTH-1:0] min_distance_node_value;
+wire min_ready;
 
 PriorityQueue #(.MAX_NODES(MAX_NODES), .INDEX_WIDTH(INDEX_WIDTH), .VALUE_WIDTH(VALUE_WIDTH))
 	priority_queue (
-		controlled_reset,
+		controlled_pq_reset,
 		clock,
 		pq_set_distance,
 		pq_index,
@@ -83,6 +85,7 @@ PriorityQueue #(.MAX_NODES(MAX_NODES), .INDEX_WIDTH(INDEX_WIDTH), .VALUE_WIDTH(V
 		pq_distance_read,
 		min_distance_node_index,
 		min_distance_node_value,
+		min_ready,
 		dist_vector
 	);
 
@@ -102,7 +105,7 @@ EdgeCache
 	.MDATA_WIDTH(MDATA_WIDTH)
 )
 	edge_cache(
-		controlled_reset,
+		controlled_ec_reset,
 		clock,
 		base_address,
 		number_of_nodes,
@@ -170,12 +173,14 @@ begin
 	else
 		state = next_state;
 
-	controlled_reset = 0;
+	controlled_pq_reset = 0;
+	controlled_ec_reset = 0;
 	case(state)
 		// Reset components
 		RESET_STATE:
 		begin
-			controlled_reset = 1;
+			controlled_pq_reset = 1;
+			controlled_ec_reset = 1;
 			next_state = READY_STATE;
 			writer_enable = 0;
 		end
@@ -183,7 +188,7 @@ begin
 		// Wait for us to be enabled
 		READY_STATE:
 		begin
-			if(enable)
+			if(enable && min_ready)
 				next_state = V0;
 		end
 
@@ -212,7 +217,7 @@ begin
 		V2:
 		begin
 			// Wait until we know the edge value
-			if(ec_ready)
+			if(ec_ready && min_ready)
 				next_state=V3;
 		end
 		V3:
@@ -236,7 +241,10 @@ begin
 		V4:
 		begin
 			pq_set_distance=0;
-			next_state = V5;
+			if(min_ready)
+				next_state = V5;
+			else
+				next_state = V4;
 		end
 		V5:
 		begin
