@@ -1,6 +1,6 @@
 `include "constants.v"
 `timescale 1ps/1ps
-`define NUMBER_OF_NODES 14
+`define NUMBER_OF_NODES 8
 `define BASE_ADDRESS 'h34
 
 module EdgeCacheTestbench
@@ -155,10 +155,6 @@ module EdgeCacheTestbench
 		@(posedge clock);
 		@(posedge clock);
 		reset = 1'b0;
-
-		// We're done with resetting, so these shouldn't matter
-		base_address = 87; // bogus address
-		number_of_nodes = 105; //bogus number of nodes
 
 		$display("EdgeCache Reset complete");
 
