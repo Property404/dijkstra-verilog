@@ -66,7 +66,7 @@ integer countdown;
 
 integer s;
 integer os;
-always @(reset, dist_vector, visited_vector)
+always @(reset, set_en, visited_vector)
 begin
 	if(reset)
 	begin
