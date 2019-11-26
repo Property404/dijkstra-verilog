@@ -21,15 +21,15 @@ def parse_qor(path):
 	return pairs
 
 def generate_table(node):
-	columns = ["CriticalPathLength", "CriticalPathSlack", "CriticalPathClkPeriod", "TotalNegativeSlack", "CellArea", "DesignArea"]
+	columns = ["CriticalPathSlack", "CriticalPathClkPeriod", "TotalNegativeSlack", "DesignArea"]
 	parent_path=None
 	if node=="90":
 		parent_path = "old_reports/90nm_reports"
-		clock_ways = []
+		clock_ways = ["59", "58", "57"]
 	else:
 		raise("I don't know man")
-	map_ways = ["none","medium","high"]
-	area_ways = ["none","low","medium","high"]
+	map_ways = ["medium","high"]
+	area_ways = ["low","medium","high"]
 	parent = parent_path+"/reports/"
 	print("<table border=1><th>Setting</th>");
 
