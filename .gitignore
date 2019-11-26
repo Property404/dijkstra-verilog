@@ -5,6 +5,7 @@
 !*.tcl
 !*.hxx
 !*.sh
+!*.py
 !*.placeholder
 !.gitignore
 !.travis.yml
@@ -12,6 +13,6 @@
 !src/testbenches
 !src/testbenches/testvectors
 !reports
-!constraints
+!dreport
 
 .*.tcl
