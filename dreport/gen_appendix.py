@@ -69,6 +69,23 @@ for f in list_files("../src/testbenches", [".sv",".v"]):
 	show_code(f, "verilog");
 print_subsection_header("Appendix C - Testvector Generator Code");
 show_code("../src/testbenches/testvectors/dijkstra.cpp", "c++");
-print_subsection_header("Appendix D - Reports");
+
+print_subsection_header("Appendix D - 90nm Synthesis Reports");
+for f in list_files("../old_reports/90nm_reports/chosen/chosen", [".rpt"]):
+	show_code(f);
+
+print_subsection_header("Appendix E - 28nm Synthesis Reports");
+for f in list_files("../old_reports/28nm_reports/chosen", [".rpt"]):
+	show_code(f);
+
+print_subsection_header("Appendix F - 90nm Synthesis Reports");
+for f in list_files("../icc90nm/output", [".rpt"]):
+	show_code(f);
+for f in list_files("../icc90nm/output2", [".rpt"]):
+	show_code(f);
+
+print_subsection_header("Appendix G - 28nm Synthesis Reports");
+for f in list_files("../icc28nm/output", [".rpt"]):
+	show_code(f);
 
 end()

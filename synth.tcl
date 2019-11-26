@@ -18,26 +18,26 @@ check_design > reports/synth_check_design.rpt
 puts "|Constraints"
 set_max_area 0
 
-foreach clock_period {100 50 40 30 25} {
-	create_clock clock -name ideal_clock_${clock_period} -period ${clock_period}
-	foreach map_effort {medium high} {
-		foreach area_effort {low medium high} {
-			compile -map_effort $map_effort -area_effort $area_effort
-			set dir "reports/${clock_period}_clock_${map_effort}_map_${area_effort}_area"
-			file mkdir $dir
-			report_area > $dir/area.rpt
-			report_timing > $dir/timing.rpt
-			report_resources > $dir/resources.rpt
-			report_constraints > $dir/constraints.rpt
-			report_qor > $dir/qor.rpt
-			check_design > $dir/post_check_design.rpt
-		}
-	}
-}
+# foreach clock_period {59 58 57 56} {
+# 	create_clock clock -name ideal_clock_${clock_period} -period ${clock_period}
+# 	foreach map_effort {medium high} {
+# 		foreach area_effort {low medium high} {
+# 			compile -map_effort $map_effort -area_effort $area_effort
+# 			set dir "reports/${clock_period}_clock_${map_effort}_map_${area_effort}_area"
+# 			file mkdir $dir
+# 			report_area > $dir/area.rpt
+# 			report_timing > $dir/timing.rpt
+# 			report_resources > $dir/resources.rpt
+# 			report_constraints > $dir/constraints.rpt
+# 			report_qor > $dir/qor.rpt
+# 			check_design > $dir/post_check_design.rpt
+# 		}
+# 	}
+# }
+# 
+# 
+# quit
 
-
-quit
- 
 create_clock clock -name actual_clock_2 -period 4
 compile -map_effort high -area_effort medium
 set dir "reports/chosen"

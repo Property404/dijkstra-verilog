@@ -26,11 +26,15 @@ def generate_table(node):
 	if node=="90":
 		parent_path = "old_reports/90nm_reports"
 		clock_ways = ["59", "58", "57"]
+		parent = parent_path +"/reports/"
+	elif node=="28":
+		parent_path = "old_reports/28nm_reports"
+		clock_ways = ["5", "4", "3"]
+		parent = parent_path+"/"
 	else:
 		raise("I don't know man")
 	map_ways = ["medium","high"]
 	area_ways = ["low","medium","high"]
-	parent = parent_path+"/reports/"
 	print("<table border=1><th>Setting</th>");
 
 	for column in columns:
