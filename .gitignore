@@ -4,6 +4,7 @@
 !*.cpp
 !*.tcl
 !*.hxx
+!*.odt
 !*.sh
 !*.py
 !*.placeholder
